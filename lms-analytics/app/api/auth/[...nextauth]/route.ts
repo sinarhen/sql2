@@ -1,8 +1,8 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
-import { db } from "@/lib/db";
-import { users } from "@/drizzle/schema";
+import { db } from "../../../../lib/db";
+import { users } from "../../../../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 const handler = NextAuth({

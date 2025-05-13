@@ -4,8 +4,8 @@ import 'dotenv/config';
 export default {
   schema: './drizzle/schema.ts',
   out: './drizzle/migrations',
-  driver: 'pg',
+  dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.POSTGRES_URL!,
+    url: process.env.DATABASE_URL!,
   },
 } satisfies Config; 

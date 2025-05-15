@@ -1,78 +1,73 @@
 import { 
-  pgTable, 
-  varchar, 
-  timestamp, 
-  pgEnum, 
-  uuid, 
+  sqliteTable,
+  text,
+  integer,
   real
-} from 'drizzle-orm/pg-core';
+} from 'drizzle-orm/sqlite-core';
 
-// Define role enum
-export const roleEnum = pgEnum('role', ['lecturer', 'student', 'admin']);
-
-// User table
-export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-  role: roleEnum('role').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+// Define role as text with check constraint instead of enum (SQLite doesn't support enums)
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey().notNull(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  role: text('role', { enum: ['lecturer', 'student', 'admin'] }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
 // Course table
-export const courses = pgTable('courses', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+export const courses = sqliteTable('courses', {
+  id: text('id').primaryKey().notNull(),
+  name: text('name').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
 // UserCourse table (many-to-many relationship)
-export const userCourses = pgTable('user_courses', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  courseId: uuid('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+export const userCourses = sqliteTable('user_courses', {
+  id: text('id').primaryKey().notNull(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
 // Assignment table
-export const assignments = pgTable('assignments', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  courseId: uuid('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
-  deadline: timestamp('deadline').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+export const assignments = sqliteTable('assignments', {
+  id: text('id').primaryKey().notNull(),
+  name: text('name').notNull(),
+  courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
+  deadline: integer('deadline', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
 // AssignmentSubmission table
-export const assignmentSubmissions = pgTable('assignment_submissions', {
-  id: uuid('id').defaultRandom().primaryKey(),
+export const assignmentSubmissions = sqliteTable('assignment_submissions', {
+  id: text('id').primaryKey().notNull(),
   rating: real('rating'),
-  assignmentId: uuid('assignment_id').notNull().references(() => assignments.id, { onDelete: 'cascade' }),
-  studentId: uuid('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  submission: timestamp('submission').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  assignmentId: text('assignment_id').notNull().references(() => assignments.id, { onDelete: 'cascade' }),
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  submission: integer('submission', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
 // Form table
-export const forms = pgTable('forms', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  end: timestamp('end').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+export const forms = sqliteTable('forms', {
+  id: text('id').primaryKey().notNull(),
+  name: text('name').notNull(),
+  end: integer('end', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
 // FormSubmission table
-export const formSubmissions = pgTable('form_submissions', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  formId: uuid('form_id').notNull().references(() => forms.id, { onDelete: 'cascade' }),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+export const formSubmissions = sqliteTable('form_submissions', {
+  id: text('id').primaryKey().notNull(),
+  formId: text('form_id').notNull().references(() => forms.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 }); 

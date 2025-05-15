@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { AuthButtons } from './auth-buttons';
 // Uncomment when needed
 // import { Avatar, AvatarFallback, AvatarImage } from '../src/components/ui/avatar';
 
 export function Navbar() {
   return (
-    <header className="border-b px-40 border-border/10">
+    <header className="border-b px-40 fixed z-50 bg-white/10 backdrop-blur-sm w-full border-border/10">
       <div className="container flex h-14 justify-between items-center">
         <div className="mr-4 flex">
           <Link href="/" className="font-medium flex items-center">
@@ -25,18 +25,7 @@ export function Navbar() {
               Documentation
             </Link>
           </nav>
-          <div className="flex items-center space-x-2">
-            <Link href="/login">
-              <Button variant="outline" size="sm" className="rounded-xl text-xs">
-                Log in
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm" className="rounded-xl text-xs">
-                Sign up
-              </Button>
-            </Link>
-          </div>
+          <AuthButtons />
         </div>
       </div>
     </header>

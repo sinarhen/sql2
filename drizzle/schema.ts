@@ -4,10 +4,10 @@ import {
   integer,
   real
 } from 'drizzle-orm/sqlite-core';
+import { v4 as uuidv4 } from 'uuid';
 
-// Define role as text with check constraint instead of enum (SQLite doesn't support enums)
 export const users = sqliteTable('users', {
-  id: text('id').primaryKey().notNull(),
+  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
@@ -16,9 +16,8 @@ export const users = sqliteTable('users', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
-// Course table
 export const courses = sqliteTable('courses', {
-  id: text('id').primaryKey().notNull(),
+  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   name: text('name').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
@@ -26,7 +25,7 @@ export const courses = sqliteTable('courses', {
 
 // UserCourse table (many-to-many relationship)
 export const userCourses = sqliteTable('user_courses', {
-  id: text('id').primaryKey().notNull(),
+  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
@@ -35,7 +34,7 @@ export const userCourses = sqliteTable('user_courses', {
 
 // Assignment table
 export const assignments = sqliteTable('assignments', {
-  id: text('id').primaryKey().notNull(),
+  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   name: text('name').notNull(),
   courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
   deadline: integer('deadline', { mode: 'timestamp' }).notNull(),
@@ -45,7 +44,7 @@ export const assignments = sqliteTable('assignments', {
 
 // AssignmentSubmission table
 export const assignmentSubmissions = sqliteTable('assignment_submissions', {
-  id: text('id').primaryKey().notNull(),
+  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   rating: real('rating'),
   assignmentId: text('assignment_id').notNull().references(() => assignments.id, { onDelete: 'cascade' }),
   studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -56,7 +55,7 @@ export const assignmentSubmissions = sqliteTable('assignment_submissions', {
 
 // Form table
 export const forms = sqliteTable('forms', {
-  id: text('id').primaryKey().notNull(),
+  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   name: text('name').notNull(),
   end: integer('end', { mode: 'timestamp' }).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
@@ -65,7 +64,7 @@ export const forms = sqliteTable('forms', {
 
 // FormSubmission table
 export const formSubmissions = sqliteTable('form_submissions', {
-  id: text('id').primaryKey().notNull(),
+  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   formId: text('form_id').notNull().references(() => forms.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),

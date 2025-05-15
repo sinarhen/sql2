@@ -1,0 +1,79 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# UI Design Requirements
+
+## Typography
+- **Font Sizes**: Use smaller font sizes wherever possible (text-xs, text-sm)
+- **Hero Section**: Can be slightly larger (text-2xl, text-3xl) but avoid large headings
+- **Text Hierarchy**: Maintain clear hierarchy despite smaller text
+
+## Colors
+- **Prefer**: Blues and purples
+- **Accent Colors**: Use sparingly to create visual interest
+- **Background**: Subtle gradients rather than flat colors
+- **Contrast**: Ensure good contrast between text and background
+
+## Interactive Elements
+- **Buttons**: Use rounded-xl for buttons, not fully rounded or sharp/squared
+- **Hover Effects**: Prefer subtle hover effects using Tailwind classes rather than whileHover prop
+- **WobbleCards**: Use for important sections to add interactivity
+
+## Layout & Spacing
+- **Containers**: Prefer glass-like effects with subtle backdrops
+- **Visual Interest**: UI should never look boring or static
+- **Sections**: Create clear visual separation between sections
+- **Content Density**: Keep content dense but well-organized
+
+## Animation
+- **Framework**: Use CSS animations with tailwindcss-motion library
+- **Performance**: Ensure animations are smooth and don't cause lag
+- **Purpose**: Animations should enhance usability, not distract
+
+## Textures & Effects
+- **Grain**: Apply subtle grain texture to backgrounds for visual interest
+- **Blur Effects**: Use backdrop-blur for depth
+- **Shadows**: Subtle shadows to create depth
+
+## Component-Specific Guidelines
+- **Cards**: Use glass-card effect with rounded corners
+- **Hero Section**: Must be visually interesting with interactive elements
+- **Testimonials**: Clean, minimalist with subtle animations
+- **CTA Sections**: Should stand out with good contrast
+
+## General Principles
+- **Modern Aesthetic**: UI should look contemporary and fresh
+- **Minimalism**: Prefer clean, uncluttered design
+- **Interactivity**: Add subtle interactive elements to engage users
+- **Responsiveness**: All elements must work well across device sizes
+
+# Code Quality Preferences
+
+## Component Structure
+- **Naming Convention**: Use kebab-case for component file names
+- **Component Location**: Place components in a _components folder in the same directory as their parent page
+- **Separation of Concerns**: Distribute UI components and client-side logic into separate files
+
+## Server-Side Rendering
+- **Prefer Server Components**: Render as much as possible on the server
+- **Client Components**: Only mark components with 'use client' when necessary for:
+  - Event handlers and state management
+  - Browser-only APIs
+  - Client-side form validation
+
+## File Organization
+- **Directory Structure**: Group related files in feature-specific directories
+- **Naming Convention**: Use kebab-case for directories and component files
+- **Shared Components**: Place reusable components in /components directory
+
+## Code Style
+- **Minimal Comments**: Only comment critical or complex code sections
+- **Component Simplicity**: Keep components focused on a single responsibility
+- **TypeScript**: Use TypeScript types for improved code safety
+
+## Authentication
+- **Session Management**: Use NextAuth.js with server-side session checks
+- **Protected Routes**: Implement authentication checks in layouts when possible
+- **User Experience**: Provide seamless authentication flows with appropriate redirects 

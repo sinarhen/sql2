@@ -1,5 +1,4 @@
-"use client";
-
+'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { 
@@ -11,13 +10,12 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { ContainerTextFlip } from '@/components/ui/container-text-flip';
 import { WobbleCard } from '@/components/ui/wobble-card';
 import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-// Animation variants
 const fadeIn = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.6 } }
@@ -47,7 +45,7 @@ export default function Home() {
   ];
 
   return (
-    <div>
+    <div className='p-12'>
       <div className="container mx-auto px-4 py-12 md:py-20">
         <motion.div 
           className="text-center mb-20 max-w-3xl mx-auto"
@@ -202,7 +200,7 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <Card className="overflow-hidden border-border/20 shadow-sm glass-card">
+            <Card className="overflow-hidden shadow-sm ">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm md:text-base tracking-tight">Data-driven decision making for education</CardTitle>
                 <CardDescription className="text-xs">Join the growing community of forward-thinking educational institutions.</CardDescription>
@@ -326,22 +324,6 @@ function FeatureWobbleCard({ title, className, description, badge }: { title: st
         <p className="text-xs text-white/80">{description}</p>
       </div>
     </WobbleCard>
-  );
-}
-
-function FeatureCard({ title, description, badge }: { title: string; description: string; badge: string }) {
-  return (
-    <Card className="border-border/30 h-full shadow-sm glass-card card-highlight">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start gap-3">
-          <CardTitle className="text-xs md:text-sm tracking-tight">{title}</CardTitle>
-          <Badge variant="outline" className="px-2 py-0 text-[10px] rounded-xl">{badge}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <CardDescription className="text-xs">{description}</CardDescription>
-      </CardContent>
-    </Card>
   );
 }
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createCourse } from "../actions";
+import { createCourse } from "../../actions";
 
 interface AddCourseFormProps {
   userId: string;
@@ -30,7 +30,7 @@ export function AddCourseForm({ userId }: AddCourseFormProps) {
   };
   
   return (
-    <Card className="backdrop-blur-sm bg-white/5 border-slate-700/10">
+    <Card className=" border-slate-700/10">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-medium">Create a new course</CardTitle>
       </CardHeader>

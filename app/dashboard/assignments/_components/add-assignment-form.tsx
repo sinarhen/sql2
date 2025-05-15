@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createAssignment } from "../actions";
+import { createAssignment } from "../../actions";
 
 interface Course {
   id: string;
@@ -43,7 +43,7 @@ export function AddAssignmentForm({ courses }: AddAssignmentFormProps) {
   };
   
   return (
-    <Card className="backdrop-blur-sm bg-white/5 border-slate-700/10">
+    <Card className=" border-slate-700/10">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-medium">Create a new assignment</CardTitle>
       </CardHeader>

@@ -49,7 +49,7 @@
   --radius: 0.75rem;
   --background: oklch(0.99 0.01 240);
   --foreground: oklch(0.15 0.02 240);
-  --card: rgba(255, 255, 255, 0);
+  --card: rgba(255, 255, 255, 1);
   --card-foreground: oklch(0.15 0.02 240);
   --popover: oklch(1 0.01 240);
   --popover-foreground: oklch(0.15 0.02 240);

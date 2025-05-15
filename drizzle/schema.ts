@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import { 
   sqliteTable,
   text,
@@ -16,12 +17,23 @@ export const users = sqliteTable('users', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
+export const usersRelations = relations(users, ({ many }) => ({
+  userCourses: many(userCourses),
+  assignmentSubmissions: many(assignmentSubmissions, { relationName: 'studentSubmissions' }),
+  formSubmissions: many(formSubmissions),
+}));
+
 export const courses = sqliteTable('courses', {
   id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   name: text('name').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
+
+export const coursesRelations = relations(courses, ({ many }) => ({
+  userCourses: many(userCourses),
+  assignments: many(assignments),
+}));
 
 // UserCourse table (many-to-many relationship)
 export const userCourses = sqliteTable('user_courses', {
@@ -32,6 +44,17 @@ export const userCourses = sqliteTable('user_courses', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
+export const userCoursesRelations = relations(userCourses, ({ one }) => ({
+  user: one(users, {
+    fields: [userCourses.userId],
+    references: [users.id],
+  }),
+  course: one(courses, {
+    fields: [userCourses.courseId],
+    references: [courses.id],
+  }),
+}));
+
 // Assignment table
 export const assignments = sqliteTable('assignments', {
   id: text('id').primaryKey().$defaultFn(() => uuidv4()),
@@ -41,6 +64,14 @@ export const assignments = sqliteTable('assignments', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
+
+export const assignmentsRelations = relations(assignments, ({ one, many }) => ({
+  course: one(courses, {
+    fields: [assignments.courseId],
+    references: [courses.id],
+  }),
+  submissions: many(assignmentSubmissions),
+}));
 
 // AssignmentSubmission table
 export const assignmentSubmissions = sqliteTable('assignment_submissions', {
@@ -54,6 +85,18 @@ export const assignmentSubmissions = sqliteTable('assignment_submissions', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
+export const assignmentSubmissionsRelations = relations(assignmentSubmissions, ({ one }) => ({
+  assignment: one(assignments, {
+    fields: [assignmentSubmissions.assignmentId],
+    references: [assignments.id],
+  }),
+  student: one(users, {
+    fields: [assignmentSubmissions.studentId],
+    references: [users.id],
+    relationName: 'studentSubmissions',
+  }),
+}));
+
 // Form table
 export const forms = sqliteTable('forms', {
   id: text('id').primaryKey().$defaultFn(() => uuidv4()),
@@ -63,6 +106,10 @@ export const forms = sqliteTable('forms', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
+export const formsRelations = relations(forms, ({ many }) => ({
+  submissions: many(formSubmissions),
+}));
+
 export const formSubmissions = sqliteTable('form_submissions', {
   id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   content: text('content'),
@@ -71,3 +118,15 @@ export const formSubmissions = sqliteTable('form_submissions', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 }); 
+
+export const formSubmissionsRelations = relations(formSubmissions, ({ one }) => ({
+  form: one(forms, {
+    fields: [formSubmissions.formId],
+    references: [forms.id],
+  }),
+  user: one(users, {
+    fields: [formSubmissions.userId],
+    references: [users.id],
+  }),
+})); 
+

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { enrollInCourse, unenrollFromCourse } from "../actions";
+import { enrollInCourse, unenrollFromCourse } from "../../actions";
 
 interface Course {
   id: string;
@@ -41,7 +41,7 @@ export function CoursesList({ courses, userRole, userId, enrolledCourseIds }: Co
   };
   
   return (
-    <Card className="backdrop-blur-sm bg-white/5 border-slate-700/10">
+    <Card className=" border-slate-700/10">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-medium">
           {userRole === "lecturer" ? "Your Courses" : "Available Courses"}

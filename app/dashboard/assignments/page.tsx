@@ -48,7 +48,7 @@ export default async function AssignmentsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader>
         <PageHeaderTitle>Assignments</PageHeaderTitle>
-        <PageHeaderDescription>Manage and track student assignments</PageHeaderDescription>
+        <PageHeaderDescription>{userResult.role === "lecturer" ? "Manage and track student assignments" : "Your Assignments"}</PageHeaderDescription>
       </PageHeader>
       
       {userResult.role === "lecturer" && (

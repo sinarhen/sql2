@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { submitAssignment, gradeAssignment } from "../actions";
+import { gradeAssignment, submitAssignment } from "../../actions";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Assignment {
   id: string;
@@ -70,13 +70,7 @@ export function AssignmentsList({ assignments, courses, userRole, userId }: Assi
   };
   
   return (
-    <Card className="backdrop-blur-sm bg-white/5 border-slate-700/10">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">
-          {userRole === "lecturer" ? "Assignments to Grade" : "Your Assignments"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="w-full">
         {assignments.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4">
             {userRole === "lecturer" 
@@ -86,11 +80,11 @@ export function AssignmentsList({ assignments, courses, userRole, userId }: Assi
         ) : (
           <div className="space-y-4">
             {assignments.map(assignment => (
-              <Card key={assignment.id} className="border border-slate-700/20 overflow-hidden">
+              <Card key={assignment.id} className=" overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-base font-medium">{assignment.name}</CardTitle>
+                      <CardTitle className="font-medium">{assignment.name}</CardTitle>
                       <p className="text-xs text-muted-foreground mt-1">
                         Course: {getCourseById(assignment.courseId)}
                       </p>
@@ -108,8 +102,7 @@ export function AssignmentsList({ assignments, courses, userRole, userId }: Assi
                 <CardContent>
                   {userRole === "student" ? (
                     <div className="space-y-3">
-                      <Input
-                        type="text"
+                      <Textarea
                         placeholder="Your submission"
                         value={submissions[assignment.id] || ""}
                         onChange={(e) => setSubmissions(prev => ({ 
@@ -149,7 +142,6 @@ export function AssignmentsList({ assignments, courses, userRole, userId }: Assi
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+    </div>
   );
 } 

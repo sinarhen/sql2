@@ -53,7 +53,7 @@ export function DashboardOverview({ stats, activities }: DashboardOverviewProps)
         />
       </div>
       
-      <Card className="backdrop-blur-sm bg-white/5 border-slate-700/10">
+      <Card className=" border-slate-700/10">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-medium">Recent Activities</CardTitle>
           <CardDescription>Latest student activities across all courses</CardDescription>
@@ -91,7 +91,7 @@ export function DashboardOverview({ stats, activities }: DashboardOverviewProps)
       </Card>
       
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="backdrop-blur-sm bg-white/5 border-slate-700/10">
+        <Card className=" border-slate-700/10">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-medium">Quick Stats</CardTitle>
             <CardDescription>Key performance indicators</CardDescription>
@@ -118,7 +118,7 @@ export function DashboardOverview({ stats, activities }: DashboardOverviewProps)
           </CardContent>
         </Card>
         
-        <Card className="backdrop-blur-sm bg-white/5 border-slate-700/10">
+        <Card className=" border-slate-700/10">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-medium">System Status</CardTitle>
             <CardDescription>Current system performance</CardDescription>
@@ -176,7 +176,7 @@ function MetricCard({
   trend: 'positive' | 'negative' | 'neutral' 
 }) {
   return (
-    <Card className="backdrop-blur-sm bg-white/5 border-slate-700/10 overflow-hidden relative group">
+    <Card className=" border-slate-700/10 overflow-hidden relative group">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       <CardHeader className="pb-0">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>

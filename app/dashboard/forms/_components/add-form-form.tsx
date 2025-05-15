@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createForm } from "../actions";
+import { createForm } from "../../actions";
 
 export function AddFormForm() {
   const [name, setName] = useState("");
@@ -31,7 +31,7 @@ export function AddFormForm() {
   };
   
   return (
-    <Card className="backdrop-blur-sm bg-white/5 border-slate-700/10">
+    <Card className=" border-slate-700/10">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-medium">Create a new feedback form</CardTitle>
       </CardHeader>

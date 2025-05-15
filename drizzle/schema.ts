@@ -46,6 +46,7 @@ export const assignments = sqliteTable('assignments', {
 export const assignmentSubmissions = sqliteTable('assignment_submissions', {
   id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   rating: real('rating'),
+  content: text('content'),
   assignmentId: text('assignment_id').notNull().references(() => assignments.id, { onDelete: 'cascade' }),
   studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   submission: integer('submission', { mode: 'timestamp' }).notNull(),
@@ -62,9 +63,9 @@ export const forms = sqliteTable('forms', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });
 
-// FormSubmission table
 export const formSubmissions = sqliteTable('form_submissions', {
   id: text('id').primaryKey().$defaultFn(() => uuidv4()),
+  content: text('content'),
   formId: text('form_id').notNull().references(() => forms.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),

@@ -1,4 +1,3 @@
-'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { 
@@ -10,31 +9,10 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { motion } from 'motion/react';
 import { ContainerTextFlip } from '@/components/ui/container-text-flip';
 import { WobbleCard } from '@/components/ui/wobble-card';
 import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.6 } }
-};
-
-const slideUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-};
-
-const stagger = {
-  hidden: { opacity: 0 },
-  visible: { 
-    opacity: 1,
-    transition: { 
-      staggerChildren: 0.1 
-    } 
-  }
-};
 
 export default function Home() {
   // Text items for the flip component
@@ -47,160 +25,128 @@ export default function Home() {
   return (
     <div className='p-12'>
       <div className="container mx-auto px-4 py-12 md:py-20">
-        <motion.div 
-          className="text-center mb-20 max-w-3xl mx-auto"
-          initial="hidden"
-          animate="visible"
-          variants={fadeIn}
+        <div 
+          className="text-center mb-20 max-w-3xl mx-auto motion-preset-blur-up-md motion-duration-600"
         >
-          <motion.h1 
-            className="text-2xl md:text-3xl font-medium mb-3 tracking-tight"
-            variants={slideUp}
+          <h1 
+            className="text-2xl md:text-3xl font-medium mb-3 tracking-tight motion-translate-y-in-20 motion-opacity-in-0 motion-duration-500"
           >
             Enhance your educational insights with
-          </motion.h1>
+          </h1>
           
           <ContainerTextFlip 
             items={flipItems}
             className="my-5"
           />
           
-          <motion.p 
-            className="text-xs md:text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed"
-            variants={slideUp}
+          <p 
+            className="text-xs md:text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed motion-translate-y-in-20 motion-opacity-in-0 motion-duration-500 motion-delay-100"
           >
             Our platform helps educators identify learning patterns, track progress in real-time,
             and implement data-backed strategies to improve student outcomes across any educational setting.
-          </motion.p>
+          </p>
           
-          <motion.div 
-            className="mt-8 flex flex-wrap justify-center gap-3"
-            variants={slideUp}
+          <div 
+            className="mt-8 flex flex-wrap justify-center gap-3 motion-translate-y-in-20 motion-opacity-in-0 motion-duration-500 motion-delay-200"
           >
             <Link href="/auth/login">
-              <Button size="sm" className=" px-6">Start Free Trial</Button>
+              <Button size="sm" >Start Free Trial</Button>
             </Link>
             <Link href="/auth/register">
-              <Button variant="outline" size="sm" >View Demo</Button>
+              <Button variant="outline" size="sm">View Demo</Button>
             </Link>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
         
 
-        <motion.div 
-          className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto mb-24"
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
+        <div 
+          className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto mb-24 motion-stagger-children"
         >
           <FeatureWobbleCard   title={'Transform Education with Real-time Analytics'} className={' col-span-full'} description={'Our platform empowers educators and administrators with powerful data insights, predictive analytics, and actionable recommendations to drive student success.'} badge={'Analytics'}>
           
           </FeatureWobbleCard>
-          <motion.div variants={slideUp}>
+          <div className="motion-preset-blur-left-sm motion-duration-500 motion-delay-100">
             <FeatureWobbleCard 
               title="Real-time Insights" 
               description="Track student engagement metrics, assignment completion, and progress indicators as they happen." 
               badge="Analytics"
             />
-          </motion.div>
-          <motion.div variants={slideUp}>
+          </div>
+          <div className="motion-preset-blur-up-sm motion-duration-500 motion-delay-200">
             <FeatureWobbleCard 
               title="Predictive Models" 
               description="Our AI algorithms identify at-risk students before issues arise, enabling proactive intervention." 
               badge="AI"
             />
-          </motion.div>
-          <motion.div variants={slideUp}>
+          </div>
+          <div className="motion-preset-blur-right-sm motion-duration-500 motion-delay-300">
             <FeatureWobbleCard 
               title="Seamless Integration" 
               description="Connects with all major LMS platforms without disrupting your existing workflows." 
               badge="Integration"
             />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
 
       {/* Testimonials Section */}
       <div className="bg-gradient-primary py-16 my-8 animate-gradient-slow">
         <div className="container mx-auto px-4">
-          <motion.h2 
-            className="text-sm md:text-base font-medium text-center mb-8"
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+          <h2 
+            className="text-sm md:text-base font-medium text-center mb-8 intersect:motion-preset-blur-up-sm intersect:motion-duration-500 intersect-once"
           >
             Empowering Educators Worldwide
-          </motion.h2>
+          </h2>
           
-          <motion.div 
-            className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
+          <div 
+            className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto intersect:motion-stagger-children intersect-once"
           >
-            <motion.div variants={slideUp}>
+            <div className="intersect:motion-preset-blur-left-sm intersect:motion-duration-500 intersect:motion-delay-100 intersect-once">
               <TestimonialCard 
                 quote="This platform completely changed how we identify and support struggling students. The early intervention indicators are remarkably accurate."
                 author="Dr. Sarah Chen"
                 role="Dean of Education, Pacific University"
               />
-            </motion.div>
-            <motion.div variants={slideUp}>
+            </div>
+            <div className="intersect:motion-preset-blur-up-sm intersect:motion-duration-500 intersect:motion-delay-200 intersect-once">
               <TestimonialCard 
                 quote="We've seen a 32% improvement in course completion rates and a 45% increase in student satisfaction scores since implementing this system."
                 author="Prof. Michael Torres"
                 role="Department Chair, Riverdale College"
               />
-            </motion.div>
-            <motion.div variants={slideUp}>
+            </div>
+            <div className="intersect:motion-preset-blur-right-sm intersect:motion-duration-500 intersect:motion-delay-300 intersect-once">
               <TestimonialCard 
                 quote="The customizable dashboards and seamless LMS integration make this an essential tool for our faculty. Setup took less than a day."
                 author="Dr. Jasmine Patel"
                 role="Director of Online Learning, Tech Institute"
               />
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Key Features Section */}
       <div className="container mx-auto px-4 py-20">
-        <motion.div 
-          className="max-w-5xl mx-auto"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+        <div 
+          className="max-w-5xl mx-auto intersect:motion-preset-blur-up-md intersect:motion-duration-800 intersect-once"
         >
-          <motion.h3 
-            className="text-base md:text-lg font-medium mb-6 text-center"
-            initial={{ y: 10, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+          <h3 
+            className="text-base md:text-lg font-medium mb-6 text-center intersect:motion-preset-blur-up-sm intersect:motion-duration-500 intersect-once"
           >
             Why Choose Our Platform?
-          </motion.h3>
+          </h3>
           
-          <motion.p 
-            className="text-xs text-center text-muted-foreground mb-8 max-w-2xl mx-auto"
-            initial={{ y: 10, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+          <p 
+            className="text-xs text-center text-muted-foreground mb-8 max-w-2xl mx-auto intersect:motion-preset-blur-up-sm intersect:motion-duration-500 intersect:motion-delay-100 intersect-once"
           >
             We combine powerful analytics with intuitive design to deliver educational insights that drive real results
-          </motion.p>
+          </p>
           
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+          <div
+            className="intersect:motion-preset-blur-up-md intersect:motion-duration-500 intersect-once"
           >
-            <Card className="overflow-hidden shadow-sm ">
+            <Card className="overflow-hidden shadow-sm glass-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm md:text-base tracking-tight">Data-driven decision making for education</CardTitle>
                 <CardDescription className="text-xs">Join the growing community of forward-thinking educational institutions.</CardDescription>
@@ -230,83 +176,60 @@ export default function Home() {
               <CardFooter className="flex justify-between items-center bg-primary/5 px-4 py-3">
                 <p className="text-xs text-muted-foreground">14-day free trial</p>
                 <Link href="/auth/register">
-                  <Button className="rounded-xl text-xs px-4 py-1 h-8">Get Started</Button>
+                  <Button className=" text-xs px-4 py-1 h-8">Get Started</Button>
                 </Link>
               </CardFooter>
             </Card>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
 
       {/* How It Works Section */}
       <div className="container mx-auto px-4 py-20">
-        <motion.h2 
-          className="text-sm md:text-base font-medium text-center mb-10"
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+        <h2 
+          className="text-sm md:text-base font-medium text-center mb-10 intersect:motion-preset-blur-up-sm intersect:motion-duration-500 intersect-once"
         >
           Implementation Process
-        </motion.h2>
+        </h2>
         
-        <motion.div 
-          className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={stagger}
+        <div 
+          className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto intersect:motion-stagger-children intersect-once"
         >
-          <motion.div variants={slideUp}><ProcessCard step="1" title="Connect Your Systems" description="Simple API integration with your existing LMS, SIS, and assessment tools. Average setup time: under 24 hours." /></motion.div>
-          <motion.div variants={slideUp}><ProcessCard step="2" title="Configure Analytics" description="Customize dashboards and alerts based on your institution's specific needs and performance indicators." /></motion.div>
-          <motion.div variants={slideUp}><ProcessCard step="3" title="Transform Learning" description="Use actionable insights to implement targeted interventions and measure their impact in real-time." /></motion.div>
-        </motion.div>
+          <div className="intersect:motion-preset-blur-left-sm intersect:motion-duration-500 intersect:motion-delay-100 intersect-once"><ProcessCard step="1" title="Connect Your Systems" description="Simple API integration with your existing LMS, SIS, and assessment tools. Average setup time: under 24 hours." /></div>
+          <div className="intersect:motion-preset-blur-up-sm intersect:motion-duration-500 intersect:motion-delay-200 intersect-once"><ProcessCard step="2" title="Configure Analytics" description="Customize dashboards and alerts based on your institution's specific needs and performance indicators." /></div>
+          <div className="intersect:motion-preset-blur-right-sm intersect:motion-duration-500 intersect:motion-delay-300 intersect-once"><ProcessCard step="3" title="Transform Learning" description="Use actionable insights to implement targeted interventions and measure their impact in real-time." /></div>
+        </div>
       </div>
 
       {/* CTA Section */}
       <div className="bg-primary/10 py-16 my-8">
         <div className="container mx-auto px-4 text-center max-w-3xl">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+          <div
+            className="intersect:motion-preset-blur-up-md intersect:motion-duration-800 intersect-once"
           >
-            <motion.h2 
-              className="text-sm md:text-base font-medium mb-3"
-              initial={{ y: 10, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+            <h2 
+              className="text-sm md:text-base font-medium mb-3 intersect:motion-preset-blur-up-sm intersect:motion-duration-500 intersect-once"
             >
               Ready to revolutionize your educational approach?
-            </motion.h2>
+            </h2>
             
-            <motion.p 
-              className="text-xs mb-6"
-              initial={{ y: 10, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+            <p 
+              className="text-xs mb-6 intersect:motion-preset-blur-up-sm intersect:motion-duration-500 intersect:motion-delay-100 intersect-once"
             >
               Join hundreds of forward-thinking institutions already using our platform.
-            </motion.p>
+            </p>
             
-            <motion.div 
-              className="flex flex-wrap justify-center gap-3"
-              initial={{ y: 10, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+            <div 
+              className="flex flex-wrap justify-center gap-3 intersect:motion-preset-blur-up-sm intersect:motion-duration-500 intersect:motion-delay-200 intersect-once"
             >
               <Link href="/auth/register">
-                <Button size="sm" className="rounded-xl px-6">Start Free Trial</Button>
+                <Button size="sm" className=" px-6">Start Free Trial</Button>
               </Link>
               <Link href="/about">
-                <Button variant="outline" size="sm" className="rounded-xl px-6 bg-transparent">Schedule Demo</Button>
+                <Button variant="outline" size="sm" className=" px-6 bg-transparent">Schedule Demo</Button>
               </Link>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -366,15 +289,6 @@ function ListItem({ children }: { children: React.ReactNode }) {
       </span>
       <span>{children}</span>
     </li>
-  );
-}
-
-function StatItem({ number, label }: { number: string; label: string }) {
-  return (
-    <div>
-      <p className="text-lg md:text-xl font-medium mb-1 text-primary">{number}</p>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
-    </div>
   );
 }
 

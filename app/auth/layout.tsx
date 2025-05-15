@@ -14,6 +14,8 @@ export default async function AuthLayout({
   }
   
   return (
-        {children}
+    <div className="flex min-h-screen items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {children}
+    </div>
   );
 } 

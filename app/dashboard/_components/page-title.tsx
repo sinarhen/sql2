@@ -1,15 +1,22 @@
-export interface PageTitleProps {
+import { 
+  PageHeader, 
+  PageHeaderTitle, 
+  PageHeaderDescription 
+} from "./page-header";
+
+interface PageTitleProps {
   title: string;
   description?: string;
 }
 
+// Keeping this for backward compatibility
 export function PageTitle({ title, description }: PageTitleProps) {
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-medium tracking-tight">{title}</h1>
+    <PageHeader>
+      <PageHeaderTitle>{title}</PageHeaderTitle>
       {description && (
-        <p className="text-muted-foreground text-sm">{description}</p>
+        <PageHeaderDescription>{description}</PageHeaderDescription>
       )}
-    </div>
+    </PageHeader>
   );
 } 

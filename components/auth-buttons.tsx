@@ -11,13 +11,36 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useState } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export function AuthButtons() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
+  const [isUpdating, setIsUpdating] = useState(false);
   
-  if (status === 'loading') {
+  if (status === 'loading' || isUpdating) {
     return <div className="h-8 w-20 bg-muted animate-pulse rounded-xl"></div>;
   }
+
+  const toggleRole = async () => {
+    if (!session) return;
+    
+    const newRole = session.user.role === 'student' ? 'lecturer' : 'student';
+    setIsUpdating(true);
+    
+    try {
+      await update({ 
+        ...session,
+        user: { 
+          ...session.user, 
+          role: newRole 
+        }
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (session) {
     return (
@@ -39,7 +62,21 @@ export function AuthButtons() {
                   {session.user.email}
                 </p>
               )}
+              <p className="text-[10px] text-muted-foreground">
+                Role: {session.user.role}
+              </p>
             </div>
+          </div>
+          <DropdownMenuSeparator />
+          <div className="px-2 py-1.5 flex items-center gap-2">
+            <Switch 
+              id="role-toggle" 
+              checked={session.user.role === 'lecturer'}
+              onCheckedChange={toggleRole}
+            />
+            <Label htmlFor="role-toggle" className="text-xs cursor-pointer">
+              {session.user.role === 'student' ? 'Switch to Lecturer' : 'Switch to Student'}
+            </Label>
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
@@ -63,12 +100,12 @@ export function AuthButtons() {
   return (
     <div className="flex items-center space-x-2">
       <Link href="/auth/login">
-        <Button variant="outline" size="sm" className="rounded-xl text-xs">
+        <Button variant="outline" size="sm">
           Log in
         </Button>
       </Link>
       <Link href="/auth/register">
-        <Button size="sm" className="rounded-xl text-xs">
+        <Button size="sm" >
           Sign up
         </Button>
       </Link>

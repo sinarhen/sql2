@@ -123,7 +123,7 @@ alwaysApply: true
 - **Teacher Recommendations**: Provide recommendations to teachers on changing teaching methods or course content based on group performance analysis.
 
 ## 7. Reports and Data Export
-- **Detailed Report Generation**: Generate reports on analytics results for a specific period, including grade distribution, performance prediction, and trends.
+- **Detailed Report Generation**: Generate reports on analytics results for a specific period, including grade distribution, performance predpiction, and trends.
 - **Analytics Data Export**: Export analysis results to CSV, Excel, PDF formats for further processing or presentations.
 
 ## 8. Survey and Questionnaire Analysis

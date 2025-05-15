@@ -77,3 +77,64 @@ alwaysApply: true
 - **Session Management**: Use NextAuth.js with server-side session checks
 - **Protected Routes**: Implement authentication checks in layouts when possible
 - **User Experience**: Provide seamless authentication flows with appropriate redirects 
+
+# Functional Requirements for Learning Analytics System
+
+## 1. User Registration and Management
+- **Registration and Authentication**: Enable registration of students and teachers with role definition (student, teacher, administrator).
+- **Role Management**: Define access levels (administrator, teacher, student) and their capabilities for analytics access.
+
+## 2. Data Import
+- **Import Grades and Results**: Support import from Excel (CSV, XLSX) or external services (Moodle, Google Classroom, etc.).
+- **Large Data Processing**: Efficiently process large volumes of data imported from various sources.
+
+## 3. Data Analysis
+- **Student Performance Analysis**:
+  - Track performance by course, module, or group.
+  - Analyze grade distribution (average, minimum, maximum, percentage of students achieving specific scores).
+  - Identify risk of course failure based on grades.
+- **Performance Prediction**: Forecast likelihood of successful course completion based on previous grades, student activity, and grade history.
+- **Trend Analysis**:
+  - Identify performance trends over time (comparing performance at different course stages).
+  - Determine the impact of changes in the learning process on student grades.
+- **Feedback Analysis**:
+  - Analyze survey and questionnaire results (sentiment analysis, identification of common issues).
+  - Compare survey results across different groups or courses.
+
+## 4. Data Visualization
+- **Charts and Diagrams**:
+  - Allow students, teachers, and administrators to view visualizations for course data: average grades, grade distribution, assignment progress.
+  - Visualize data using various chart types (line graphs, histograms, bar charts).
+- **Progress Monitoring Dashboards**:
+  - Dashboards for teachers to view overall course and group statistics.
+  - Real-time progress dashboards for students.
+- **Heat Maps**: Analyze grade distribution and activity across different learning aspects.
+- **Filters and Dynamic Display Settings**: Configure filters to analyze data by specific period, student group, courses, or grades.
+
+## 5. Interpretation and Detailed Analysis
+- **Grade Dynamics Analysis**: Track changes in student grades over time, identify declines or improvements.
+- **Correlation Analysis**:
+  - Determine correlations between different parameters (e.g., time spent on course and grades received).
+  - Identify factors that may influence student performance.
+- **Group Result Analysis**: Compare results between student groups taking the same course to identify best practices or issues.
+
+## 6. Personalized Recommendations
+- **Data-Driven Recommendations**: Recommend additional materials or courses to students based on their previous achievements and interests.
+- **Teacher Recommendations**: Provide recommendations to teachers on changing teaching methods or course content based on group performance analysis.
+
+## 7. Reports and Data Export
+- **Detailed Report Generation**: Generate reports on analytics results for a specific period, including grade distribution, performance prediction, and trends.
+- **Analytics Data Export**: Export analysis results to CSV, Excel, PDF formats for further processing or presentations.
+
+## 8. Survey and Questionnaire Analysis
+- **Survey Results Collection and Processing**: Collect and automatically analyze survey results (sentiment analysis, key issue identification).
+- **Feedback Analysis**: Analyze student responses to open-ended questions, identifying main trends or issues.
+
+## 9. Security and Access
+- **Data Protection**: Ensure the protection of personal and academic data of students and teachers.
+- **Access Control**: Access to different data levels depending on user role (student, teacher, administrator).
+- **Data Encryption**: Encrypt important data to ensure confidentiality.
+
+## 10. Integration Interfaces and API
+- **Integration with Other Platforms**: Enable integration with other services for data collection or grade import and feedback.
+- **API for Data Access**: Provide API for external systems or extensions to access analytical data. 

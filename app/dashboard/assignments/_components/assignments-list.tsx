@@ -168,7 +168,7 @@ export function AssignmentsList({ assignments, courses, userRole }: AssignmentsL
     <div className="w-full">
       {userRole === "student" && assignments.length > 0 && (
         <Tabs defaultValue="all" className="mb-4 motion-preset-blur-up-sm motion-duration-500" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-background/50 backdrop-blur-sm">
+          <TabsList className="bg-background/50 ">
             <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
             <TabsTrigger value="completed" className="text-xs">Completed</TabsTrigger>
             <TabsTrigger value="incomplete" className="text-xs">Incomplete</TabsTrigger>

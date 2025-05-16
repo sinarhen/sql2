@@ -40,6 +40,9 @@ export function Navbar() {
                 <Link href="/dashboard" className={cn("text-foreground/60 hover:text-foreground transition-colors")}>
                   Dashboard
                 </Link>
+                <Link href="/dashboard/profile" className={cn("text-foreground/60 hover:text-foreground transition-colors")}>
+                  Profile
+                </Link>
                 {userRole === 'lecturer' || userRole === 'admin' ? (
                   <>
                     <Link href="/dashboard/courses" className="text-foreground/60 hover:text-foreground transition-colors">

@@ -1,8 +1,8 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from 'next/link';
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { users } from "@/components/ui/drizzle/schema";
+import { users } from "@/lib/db/drizzle/schema";
 import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../../../components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,7 @@ export default async function CoursesPage() {
   });
   
   if (!userResult) {
-    notFound();
+    redirect("/auth/login");
   }
   
   // Get all available courses
@@ -128,7 +128,7 @@ export default async function CoursesPage() {
                 className={`motion-preset-blur-${idx % 3 === 0 ? 'left' : idx % 3 === 1 ? 'up' : 'right'}-sm motion-duration-500 motion-delay-${(idx % 3 + 1) * 100}`}
               >
                 <Card className="overflow-hidden glass-card  border-border/40 hover:shadow-md transition-all duration-300">
-                  <CardHeader className={`pb-3 bg-gradient-to-br from-${colorName === "primary" ? "primary" : colorName + "-500"}/5 to-${colorName === "primary" ? "primary" : colorName + "-500"}/10`}>
+                  <CardHeader className={`pb-3  text-primary/10`}>
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-xs">
                         <span className={`text-${colorName === "primary" ? "primary" : colorName + "-600"}`}>{course.name}</span>

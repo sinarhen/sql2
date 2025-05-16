@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { assignments, courses, users, userCourses } from "@/components/ui/drizzle/schema";
+import { assignments, courses, users, userCourses } from "@/lib/db/drizzle/schema";
 import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../../../components/page-header";
 import { AssignmentsList } from "./_components/assignments-list";
 import { AddAssignmentForm } from "./_components/add-assignment-form";
@@ -19,7 +19,7 @@ export default async function AssignmentsPage() {
   });
   
   if (!userResult) {
-    notFound();
+    redirect("/auth/login");
   }
   
   // Get user courses

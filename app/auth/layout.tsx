@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
+import { getUserById } from '../dashboard/actions';
 
 export default async function AuthLayout({
   children,
@@ -7,8 +8,9 @@ export default async function AuthLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  
-  if (session) {
+
+  const user = await getUserById(session?.user?.id || "")
+  if (user) {
     redirect('/dashboard');
   }
   

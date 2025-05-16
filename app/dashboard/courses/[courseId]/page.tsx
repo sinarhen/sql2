@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { users } from "@/components/ui/drizzle/schema";
+import { users } from "@/lib/db/drizzle/schema";
 import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ export default async function CourseDetailsPage({ params }: { params: { courseId
   });
   
   if (!userResult) {
-    notFound();
+    redirect("/auth/login");
   }
   
   const course = await getCourseById(params.courseId);

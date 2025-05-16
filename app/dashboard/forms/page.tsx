@@ -2,7 +2,7 @@
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { forms, users } from "@/components/ui/drizzle/schema";
+import { forms, users } from "@/lib/db/drizzle/schema";
 import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../../../components/page-header";
 import { FormsList } from "./_components/forms-list";
 import { AddFormForm } from "./_components/add-form-form";

@@ -10,7 +10,7 @@ import {
   userCourses,
   forms,
   formSubmissions
-} from "@/components/ui/drizzle/schema";
+} from "@/lib/db/drizzle/schema";
 import { eq, sql, count, avg, max, min, desc, and } from "drizzle-orm";
 
 export type StudentStats = {
@@ -33,7 +33,7 @@ export type RecentActivity = {
 };
 
 export async function getUserById(id: string) {
-    return await db.select().from(users).where(eq(users.id, id))
+    return await db.select().from(users).where(eq(users.id, id)).then((res) => res[0])
 }
 
 // Analytics for overall student statistics
@@ -230,6 +230,7 @@ export async function createCourse(name: string, lecturerId: string) {
     .insert(courses)
     .values({
       name,
+      lecturerId,
     })
     .returning();
 
@@ -530,6 +531,7 @@ type ImportedStudent = {
 
 type ImportedCourse = {
   name: string;
+  lecturerId: string;
 };
 
 type ImportedAssignment = {
@@ -577,6 +579,7 @@ export async function importCourses(importedCourses: ImportedCourse[]) {
     for (const course of importedCourses) {
       const insert = db.insert(courses).values({
         name: course.name,
+        lecturerId: course.lecturerId,
       });
       
       inserts.push(insert);

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search } from 'lucide-react';
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { users } from "@/components/ui/drizzle/schema";
+import { users } from "@/lib/db/drizzle/schema";
 import { getUserCourses } from "../actions";
 import { auth } from '@/lib/auth';
 
@@ -133,10 +132,10 @@ export default async function CoursesPage() {
                 className={`motion-preset-blur-${idx % 3 === 0 ? 'left' : idx % 3 === 1 ? 'up' : 'right'}-sm motion-duration-500 motion-delay-${(idx % 3 + 1) * 100}`}
               >
                 <Card className="overflow-hidden glass-card border-border/40 hover:shadow-md transition-all duration-300">
-                  <CardHeader className={`pb-3 bg-gradient-to-br from-${colorName === "primary" ? "primary" : colorName + "-500"}/5 to-${colorName === "primary" ? "primary" : colorName + "-500"}/10`}>
+                  <CardHeader className={`pb-3 text-primary`}>
                     <div className="flex justify-between items-start">
                       <CardTitle>
-                        <span className={`text-${colorName === "primary" ? "primary" : colorName + "-600"}`}>{course.name}</span>
+                        <span className={`text-primary`}>{course.name}</span>
                       </CardTitle>
                       <Badge 
                         className={`rounded-xl  text-xs

@@ -1,7 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { db } from "./db";
-import { users } from "../components/ui/drizzle/schema";
+import { users } from "./db/drizzle/schema";
 import { eq } from "drizzle-orm";
 
 import type {
@@ -67,6 +67,7 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          console.log("LOGGED IN", user)
           return {
             id: user.id,
             name: user.name,
@@ -84,12 +85,12 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt(payload) {
-      if (payload.session?.user) {
-        payload.token.role = payload.session.user.role;
-        payload.token.id = payload.session.user.id;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
       }
-      return payload.token;
+      return token;
     },
     async session({ session, token }) {
       if (token && session.user) {

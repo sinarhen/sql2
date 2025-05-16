@@ -32,7 +32,7 @@ export function CreateCourseForm({ lecturerId }: CreateCourseFormProps) {
   };
   
   return (
-    <Card className="glass-card border-border/40">
+    <Card className="border-border/40">
       <CardHeader>
         <CardTitle className="text-xs">Create a new course</CardTitle>
         <CardDescription className="text-[10px]">Enter the details for your new course</CardDescription>

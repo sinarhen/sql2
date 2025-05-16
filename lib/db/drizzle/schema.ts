@@ -26,6 +26,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const courses = sqliteTable('courses', {
   id: text('id').primaryKey().$defaultFn(() => uuidv4()),
   name: text('name').notNull(),
+  lecturerId: text('lecturer_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
 });

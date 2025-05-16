@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { users } from "@/components/ui/drizzle/schema";
+import { users } from "@/lib/db/drizzle/schema";
 import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";

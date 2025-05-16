@@ -18,7 +18,7 @@ export function Navbar() {
         <div className="mr-4 flex">
           <Link href="/" className="font-medium flex items-center">
             <span className="h-6 w-6 rounded-md bg-primary flex items-center justify-center text-xs text-primary-foreground mr-2">LA</span>
-            <span className="hidden md:inline-block">Learning Analytics</span>
+            <span className="hidden  md:inline-block">Learnics</span>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-4 md:justify-end">

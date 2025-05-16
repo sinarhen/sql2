@@ -158,6 +158,23 @@ export default async function CoursesPage() {
                       </div>
                     </div>
                     
+                    <div className="grid grid-cols-3 gap-2 text-[10px] mb-3 border-t border-border/10 pt-2">
+                      <div className="flex flex-col">
+                        <span className="text-muted-foreground">Assignments</span>
+                        <span className="font-medium">{course.assignmentCount || 0}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-muted-foreground">Students</span>
+                        <span className="font-medium">{course.enrollmentCount || 0}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-muted-foreground">Creator</span>
+                        <span className="font-medium truncate" title={course.creatorName || ''}>
+                          {course.creatorName || 'Unknown'}
+                        </span>
+                      </div>
+                    </div>
+                    
                     <div className="space-y-1 text-[10px]">
                       <p className="mt-2 mb-1 text-muted-foreground">Skills you&apos;ll learn:</p>
                       <div className="flex flex-wrap gap-1">

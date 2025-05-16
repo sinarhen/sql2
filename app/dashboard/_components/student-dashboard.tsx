@@ -20,9 +20,11 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
           <PageHeader className="mb-0">
             <PageHeaderTitle>Student Dashboard</PageHeaderTitle>
           </PageHeader>
-          <Button size="sm" >
-            <span className="mr-2">+</span>New Analysis
-          </Button>
+          <Link href="/dashboard/courses">
+            <Button size="sm" >
+              <span className="mr-2">+</span>Explore Courses
+            </Button>
+          </Link>
         </div>
       
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 motion-stagger-children">
@@ -113,7 +115,12 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
       </div>
       
       <div className="mb-10 motion-preset-blur-up-sm motion-duration-600 motion-delay-300">
-        <h2 className="text-xs md:text-sm font-medium mb-4 tracking-tight">Recent Activity</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xs md:text-sm font-medium mb-4 tracking-tight">Recent Activity</h2>
+          <Link href="/dashboard/my-submissions">
+            <Button size="sm" variant="ghost" className="text-xs text-primary">View All</Button>
+          </Link>
+        </div>
         <Card>
           <CardContent className="p-4">
             <div className="space-y-4">
@@ -131,14 +138,65 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
                         : 'Assignment Submitted'
                       }
                     </p>
-                    <p className="text-[10px] text-muted-foreground">{activity.courseName} - {activity.assignmentName}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      <Link href={`/dashboard/courses/${activity.assignmentId}`} className="hover:underline">
+                        {activity.courseName}
+                      </Link> - {' '}
+                      <Link href={`/dashboard/assignments/${activity.assignmentId}`} className="hover:underline">
+                        {activity.assignmentName}
+                      </Link>
+                    </p>
                   </div>
-                  <Badge variant="outline" className="text-[10px] bg-transparent">
-                    {typeof activity.submission === 'object'
-                      ? new Date(activity.submission).toLocaleDateString()
-                      : new Date(activity.submission).toLocaleDateString()
-                    }
-                  </Badge>
+                  <Link href={`/dashboard/assignments/${activity.assignmentId}/submissions/${activity.id}`}>
+                    <Button size="sm" variant="outline" className="text-[10px] h-7 rounded-xl">
+                      View Details
+                    </Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="mb-10 motion-preset-blur-up-sm motion-duration-650 motion-delay-350">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xs md:text-sm font-medium tracking-tight">Upcoming Assignments</h2>
+          <Link href="/dashboard/assignments">
+            <Button size="sm" variant="ghost" className="text-xs text-primary">View All</Button>
+          </Link>
+        </div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              {dashboardData.upcomingAssignments && dashboardData.upcomingAssignments.map((assignment) => (
+                <div key={assignment.id} className="flex items-center gap-3 pb-3 border-b border-border/20 last:border-0 last:pb-0">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-[10px] text-primary">AS</span>
+                  </div>
+                  <div className="flex-1">
+                    <Link href={`/dashboard/assignments/${assignment.id}`}>
+                      <p className="text-xs font-medium hover:underline">{assignment.name}</p>
+                    </Link>
+                    <Link href={`/dashboard/courses/${assignment.courseId}`}>
+                      <p className="text-[10px] text-muted-foreground hover:underline">{assignment.courseName}</p>
+                    </Link>
+                  </div>
+                  <div className="text-right flex flex-col items-end">
+                    <Badge variant="outline" className="text-[10px] bg-transparent">
+                      Due: {new Date(assignment.deadline).toLocaleDateString()}
+                    </Badge>
+                    <Badge 
+                      variant={Boolean(assignment.isCompleted) ? "secondary" : "outline"} 
+                      className={`text-[10px] mt-1 px-2 py-0 rounded-xl ${
+                        Boolean(assignment.isCompleted) 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {Boolean(assignment.isCompleted) ? 'Completed' : 'Pending'}
+                    </Badge>
+                  </div>
                 </div>
               ))}
             </div>
@@ -160,7 +218,9 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
               <Card className="overflow-hidden glass-card border-border/40 hover:shadow-md transition-all duration-300">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xs md:text-sm flex justify-between">
-                    <span className="text-primary">{course.title}</span>
+                    <Link href={`/dashboard/courses/${course.id}`} className="hover:underline">
+                      <span className="text-primary">{course.title}</span>
+                    </Link>
                     <Badge className="px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
                       {course.completion}
                     </Badge>
@@ -178,19 +238,21 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-1 pb-3 flex justify-between">
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="text-[10px] text-primary p-0 h-auto"
-                  >
-                    View Details
-                  </Button>
-                  <Link href={`/dashboard/courses/${course.id}`}>
+                  <Link href={`/dashboard/courses/${course.id}/syllabus`}>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-[10px] text-primary p-0 h-auto"
+                    >
+                      Syllabus
+                    </Button>
+                  </Link>
+                  <Link href={`/dashboard/courses/${course.id}/assignments`}>
                     <Button 
                       size="sm" 
                       className="rounded-xl text-[10px] px-3 py-1 h-6 bg-primary hover:bg-primary/90"
                     >
-                      Analyze
+                      Assignments
                     </Button>
                   </Link>
                 </CardFooter>

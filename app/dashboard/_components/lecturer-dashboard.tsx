@@ -20,9 +20,11 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
           <PageHeader className="mb-0">
             <PageHeaderTitle>Lecturer Dashboard</PageHeaderTitle>
           </PageHeader>
-          <Button size="sm" >
-            <span className="mr-2">+</span>Create Course
-          </Button>
+          <Link href="/dashboard/courses/create">
+            <Button size="sm">
+              <span className="mr-2">+</span>Create Course
+            </Button>
+          </Link>
         </div>
       
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 motion-stagger-children">
@@ -113,7 +115,12 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
       </div>
       
       <div className="mb-10 motion-preset-blur-up-sm motion-duration-600 motion-delay-300">
-        <h2 className="text-xs md:text-sm font-medium mb-4 tracking-tight">Recent Submissions</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xs md:text-sm font-medium mb-4 tracking-tight">Recent Submissions</h2>
+          <Link href="/dashboard/assignments">
+            <Button size="sm" variant="ghost" className="text-xs text-primary">View All</Button>
+          </Link>
+        </div>
         <Card>
           <CardContent className="p-4">
             <div className="space-y-4">
@@ -125,19 +132,69 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
                     </span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-medium">
+                    <Link href={`/dashboard/students/${activity.studentId}`} className="inline-block hover:underline">
+                      <p className="text-xs font-medium text-primary">
+                        {activity.studentName}
+                      </p>
+                    </Link>
+                    <p className="text-[10px] text-muted-foreground">
                       {activity.rating !== null 
                         ? `Grade: ${activity.rating}%`
                         : 'New Submission'
+                      } for <Link href={`/dashboard/courses/${activity.assignmentId}`} className="hover:underline">{activity.courseName}</Link>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      <Link href={`/dashboard/assignments/${activity.assignmentId}`} className="hover:underline">
+                        {activity.assignmentName}
+                      </Link> - {typeof activity.submission === 'object'
+                        ? new Date(activity.submission).toLocaleDateString()
+                        : new Date(activity.submission).toLocaleDateString()
                       }
                     </p>
-                    <p className="text-[10px] text-muted-foreground">{activity.courseName} - {activity.assignmentName}</p>
                   </div>
-                  <Link href={`/dashboard/assignments/${activity.assignmentId}/submissions/${activity.id}`}>
+                  <Link href={`/dashboard/assignments/submissions/${activity.id}`}>
                     <Button size="sm" variant="outline" className="text-[10px] h-7 rounded-xl">
                       {activity.rating !== null ? 'Review' : 'Grade'}
                     </Button>
                   </Link>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mb-10 motion-preset-blur-up-sm motion-duration-650 motion-delay-350">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xs md:text-sm font-medium tracking-tight">Latest Assignments</h2>
+          <Link href="/dashboard/assignments/create">
+            <Button size="sm" variant="ghost" className="text-xs text-primary">Create New</Button>
+          </Link>
+        </div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              {dashboardData.latestAssignments && dashboardData.latestAssignments.map((assignment) => (
+                <div key={assignment.id} className="flex items-center gap-3 pb-3 border-b border-border/20 last:border-0 last:pb-0">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-[10px] text-primary">AS</span>
+                  </div>
+                  <div className="flex-1">
+                    <Link href={`/dashboard/assignments/${assignment.id}`}>
+                      <p className="text-xs font-medium hover:underline">{assignment.name}</p>
+                    </Link>
+                    <Link href={`/dashboard/courses/${assignment.courseId}`}>
+                      <p className="text-[10px] text-muted-foreground hover:underline">{assignment.courseName}</p>
+                    </Link>
+                  </div>
+                  <div className="text-right flex flex-col items-end">
+                    <Badge variant="outline" className="text-[10px] bg-transparent">
+                      {new Date(assignment.deadline).toLocaleDateString()}
+                    </Badge>
+                    <span className="text-[10px] text-muted-foreground mt-1">
+                      {Number(assignment.submissionsCount)}/{Number(assignment.totalStudents)} submissions
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -159,7 +216,9 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
               <Card className="overflow-hidden glass-card border-border/40 hover:shadow-md transition-all duration-300">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xs md:text-sm flex justify-between">
-                    <span className="text-primary">{course.title}</span>
+                    <Link href={`/dashboard/courses/${course.id}`} className="hover:underline">
+                      <span className="text-primary">{course.title}</span>
+                    </Link>
                     <Badge className="px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
                       {course.completion}
                     </Badge>
@@ -176,20 +235,13 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-1 pb-3 flex justify-between">
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="text-[10px] text-primary p-0 h-auto"
-                  >
-                    View Details
-                  </Button>
+                <CardFooter className="pt-1 pb-3 flex justify-end">
                   <Link href={`/dashboard/courses/${course.id}`}>
                     <Button 
                       size="sm" 
                       className="rounded-xl text-[10px] px-3 py-1 h-6 bg-primary hover:bg-primary/90"
                     >
-                      Manage
+                      Details
                     </Button>
                   </Link>
                 </CardFooter>

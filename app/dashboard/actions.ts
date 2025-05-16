@@ -244,24 +244,61 @@ export async function createCourse(name: string, lecturerId: string) {
 }
 
 export async function getAllCourses(userId?: string) {
-  const allCourses = await db.select().from(courses);
+  // Fetch courses with lecturer names
+  const allCourses = await db
+    .select({
+      id: courses.id,
+      name: courses.name,
+      lecturerId: courses.lecturerId,
+      createdAt: courses.createdAt,
+      updatedAt: courses.updatedAt,
+      creatorName: users.name,
+    })
+    .from(courses)
+    .leftJoin(users, eq(users.id, courses.lecturerId));
   
-  if (!userId) {
-    return allCourses.map(course => ({
-      ...course,
-      isUserEnrolled: false
-    }));
+  // Get enrollment counts for each course
+  const enrollmentCounts = await db
+    .select({
+      courseId: userCourses.courseId,
+      count: count(),
+    })
+    .from(userCourses)
+    .groupBy(userCourses.courseId);
+  
+  // Get assignment counts for each course
+  const assignmentCounts = await db
+    .select({
+      courseId: assignments.courseId,
+      count: count(),
+    })
+    .from(assignments)
+    .groupBy(assignments.courseId);
+  
+  // Create a map of course IDs to enrollment and assignment counts
+  const enrollmentMap = new Map(
+    enrollmentCounts.map(item => [item.courseId, item.count])
+  );
+  
+  const assignmentMap = new Map(
+    assignmentCounts.map(item => [item.courseId, item.count])
+  );
+  
+  // Get user enrollments if userId is provided
+  let enrolledCourseIds = new Set<string>();
+  if (userId) {
+    const userEnrollments = await db.query.userCourses.findMany({
+      where: eq(userCourses.userId, userId),
+    });
+    enrolledCourseIds = new Set(userEnrollments.map(e => e.courseId));
   }
-
-  const userEnrollments = await db.query.userCourses.findMany({
-    where: eq(userCourses.userId, userId),
-  });
-
-  const enrolledCourseIds = new Set(userEnrollments.map(e => e.courseId));
   
+  // Combine all data
   return allCourses.map(course => ({
     ...course,
-    isUserEnrolled: enrolledCourseIds.has(course.id)
+    enrollmentCount: enrollmentMap.get(course.id) || 0,
+    assignmentCount: assignmentMap.get(course.id) || 0,
+    isUserEnrolled: enrolledCourseIds.has(course.id),
   }));
 }
 
@@ -1123,7 +1160,7 @@ export async function getSubmissionPageData(assignmentId: string, userId: string
 // Student dashboard data endpoint
 export async function getStudentDashboardData(userId: string) {
   // Execute all database queries in parallel for better performance
-  const [studentStatsData, userCoursesWithPerformance, recentActivitiesData] = await Promise.all([
+  const [studentStatsData, userCoursesWithPerformance, recentActivitiesData, upcomingAssignmentsData] = await Promise.all([
     // 1. Get student stats in a single query
     db.select({
       totalStudents: count(users.id),
@@ -1166,8 +1203,34 @@ export async function getStudentDashboardData(userId: string) {
     .innerJoin(users, eq(assignmentSubmissions.studentId, users.id))
     .innerJoin(assignments, eq(assignmentSubmissions.assignmentId, assignments.id))
     .innerJoin(courses, eq(assignments.courseId, courses.id))
+    .where(eq(assignmentSubmissions.studentId, userId))
     .orderBy(desc(assignmentSubmissions.submission))
-    .limit(3)
+    .limit(3),
+    
+    // 4. Get upcoming assignments for enrolled courses
+    db.select({
+      id: assignments.id,
+      name: assignments.name,
+      courseId: assignments.courseId,
+      courseName: courses.name,
+      deadline: assignments.deadline,
+      isCompleted: sql`EXISTS (
+        SELECT 1 FROM ${assignmentSubmissions} 
+        WHERE ${assignmentSubmissions.assignmentId} = ${assignments.id} 
+        AND ${assignmentSubmissions.studentId} = ${userId}
+      )`
+    })
+    .from(assignments)
+    .innerJoin(courses, eq(assignments.courseId, courses.id))
+    .innerJoin(userCourses, eq(userCourses.courseId, courses.id))
+    .where(
+      and(
+        eq(userCourses.userId, userId),
+        sql`${assignments.deadline} >= datetime('now')` // Only include future assignments
+      )
+    )
+    .orderBy(assignments.deadline)
+    .limit(5)
   ]);
 
   // Calculate performance improvement (weekly change)
@@ -1219,14 +1282,15 @@ export async function getStudentDashboardData(userId: string) {
       rate: engagementRate
     },
     recentActivities: recentActivitiesData,
-    courses: formattedCourses.slice(0, 3) // Limit to 3 courses for the dashboard
+    courses: formattedCourses.slice(0, 3), // Limit to 3 courses for the dashboard
+    upcomingAssignments: upcomingAssignmentsData
   };
 }
 
 // Lecturer dashboard data endpoint
 export async function getLecturerDashboardData(userId: string) {
   // Execute all database queries in parallel for better performance
-  const [coursesData, submissionsData, recentActivitiesData] = await Promise.all([
+  const [coursesData, submissionsData, recentActivitiesData, latestAssignmentsData] = await Promise.all([
     // 1. Get lecturer's courses with statistics
     db.select({
       courseId: courses.id,
@@ -1272,7 +1336,29 @@ export async function getLecturerDashboardData(userId: string) {
     .innerJoin(courses, eq(assignments.courseId, courses.id))
     .where(eq(courses.lecturerId, userId))
     .orderBy(desc(assignmentSubmissions.submission))
-    .limit(3)
+    .limit(3),
+    
+    // 4. Get latest assignments created by lecturer
+    db.select({
+      id: assignments.id,
+      name: assignments.name,
+      courseId: assignments.courseId,
+      courseName: courses.name,
+      deadline: assignments.deadline,
+      submissionsCount: sql`(
+        SELECT COUNT(*) FROM ${assignmentSubmissions}
+        WHERE ${assignmentSubmissions.assignmentId} = ${assignments.id}
+      )`,
+      totalStudents: sql`(
+        SELECT COUNT(*) FROM ${userCourses}
+        WHERE ${userCourses.courseId} = ${assignments.courseId}
+      )`
+    })
+    .from(assignments)
+    .innerJoin(courses, eq(assignments.courseId, courses.id))
+    .where(eq(courses.lecturerId, userId))
+    .orderBy(desc(assignments.createdAt))
+    .limit(5)
   ]);
 
   // Calculate recent performance trend (for the first card)
@@ -1316,7 +1402,8 @@ export async function getLecturerDashboardData(userId: string) {
       rate: engagementRate
     },
     recentActivities: recentActivitiesData,
-    courses: formattedCourses.slice(0, 3) // Limit to 3 courses for the dashboard
+    courses: formattedCourses.slice(0, 3), // Limit to 3 courses for the dashboard
+    latestAssignments: latestAssignmentsData
   };
 }
 

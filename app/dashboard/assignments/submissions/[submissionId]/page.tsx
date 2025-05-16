@@ -11,7 +11,8 @@ import { BarChart3Icon, UserIcon, CheckCircleIcon } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { getSubmissionDetails } from "../../../actions";
 
-export default async function SubmissionDetailsPage({ params }: { params: { submissionId: string } }) {
+export default async function SubmissionDetailsPage({ params }: { params: Promise<{ submissionId: string }> }) {
+  const [awaitedParams] = await Promise.all([params]);
   const session = await auth();
   
   if (!session?.user) {
@@ -26,7 +27,7 @@ export default async function SubmissionDetailsPage({ params }: { params: { subm
     redirect("/auth/login");
   }
   
-  const submissionDetails = await getSubmissionDetails(params.submissionId);
+  const submissionDetails = await getSubmissionDetails(awaitedParams.submissionId);
   
   if (!submissionDetails) {
     notFound();

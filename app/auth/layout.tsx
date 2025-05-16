@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { getUserById } from '../dashboard/actions';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default async function AuthLayout({
   children,

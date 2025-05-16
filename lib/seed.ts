@@ -49,7 +49,7 @@ export async function seed() {
   // Create users
   const passwordHash = await bcrypt.hash('password123', 10);
   
-  const [admin] = await db.insert(users).values({
+  await db.insert(users).values({
     name: 'Admin User',
     email: 'admin@example.com',
     passwordHash,

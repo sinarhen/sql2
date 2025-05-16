@@ -1659,9 +1659,8 @@ export async function getAverageGrades(userId: string) {
     courseMap.get(submission.courseId).grades.push(submission.rating || 0);
   }
   
-  // Calculate average for each course
-  for (const [_, courseData] of courseMap.entries()) {
-    const courseAverage = courseData.grades.reduce((sum, grade) => sum + grade, 0) / courseData.grades.length;
+  for (const [, courseData] of courseMap.entries()) {
+    const courseAverage = courseData.grades.reduce((sum: number, grade: number) => sum + grade, 0) / courseData.grades.length;
     courseGrades.push({
       courseId: courseData.courseId,
       courseName: courseData.courseName,
@@ -1676,10 +1675,7 @@ export async function getAverageGrades(userId: string) {
     courseGrades,
   };
 }
-
-// Get grades for a specific course
 export async function getCourseGrades(courseId: string) {
-  // Get course info first
   const course = await getCourseById(courseId);
   
   if (!course) {
@@ -1736,8 +1732,8 @@ export async function getCourseGrades(courseId: string) {
   }
   
   // Calculate average for each student
-  for (const [_, studentData] of studentMap.entries()) {
-    const studentAverage = studentData.grades.reduce((sum, grade) => sum + grade, 0) / studentData.grades.length;
+  for (const [, studentData] of studentMap.entries()) {
+    const studentAverage = studentData.grades.reduce((sum: number, grade: number) => sum + grade, 0) / studentData.grades.length;
     studentGrades.push({
       studentId: studentData.studentId,
       studentName: studentData.studentName,

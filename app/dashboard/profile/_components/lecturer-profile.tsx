@@ -70,13 +70,13 @@ export async function LecturerProfile({ userId }: LecturerProfileProps) {
                   <div className="space-y-1">
                     <p className="text-[10px] text-muted-foreground">Role</p>
                     <Badge variant="secondary" className="text-[10px] rounded-xl">
-                      {user?.role.charAt(0).toUpperCase() + user?.role.slice(1)}
+                      {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'N/A'}
                     </Badge>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] text-muted-foreground">Member Since</p>
                     <p className="text-xs font-medium">
-                      {new Date(user?.createdAt).toLocaleDateString()}
+                      {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                 </div>

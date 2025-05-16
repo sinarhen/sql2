@@ -18,7 +18,8 @@ import {
 } from "../../actions";
 import EnrollButton from "../_components/enroll-button";
 
-export default async function CourseDetailsPage({ params }: { params: { courseId: string } }) {
+export default async function CourseDetailsPage({ params }: { params: Promise<{ courseId: string }> }) {
+  const [awaitedParams] = await Promise.all([params]);
   const session = await auth();
   
   if (!session?.user) {
@@ -33,16 +34,16 @@ export default async function CourseDetailsPage({ params }: { params: { courseId
     redirect("/auth/login");
   }
   
-  const course = await getCourseById(params.courseId);
+  const course = await getCourseById(awaitedParams.courseId);
   
   if (!course) {
     notFound();
   }
   
-  const assignments = await getCourseAssignments(params.courseId);
+  const assignments = await getCourseAssignments(awaitedParams.courseId);
   
   // Check if the user is enrolled in the course
-  const enrollments = await getCourseEnrollments(params.courseId);
+  const enrollments = await getCourseEnrollments(awaitedParams.courseId);
   const isUserEnrolled = enrollments.some(enrollment => enrollment.userId === userResult.id);
   const isLecturerOrAdmin = userResult.role === "lecturer" || userResult.role === "admin";
   
@@ -51,7 +52,7 @@ export default async function CourseDetailsPage({ params }: { params: { courseId
     : [];
   
   // Get additional course statistics
-  const courseStats = await getCourseStats(params.courseId);
+  const courseStats = await getCourseStats(awaitedParams.courseId);
   
   return (
     <div>
@@ -74,7 +75,7 @@ export default async function CourseDetailsPage({ params }: { params: { courseId
             </Link>
             
             {!isUserEnrolled && userResult.role === "student" && (
-              <EnrollButton courseId={params.courseId} userId={userResult.id} isEnrolled={false} />
+              <EnrollButton courseId={awaitedParams.courseId} userId={userResult.id} isEnrolled={false} />
             )}
           </div>
         </div>

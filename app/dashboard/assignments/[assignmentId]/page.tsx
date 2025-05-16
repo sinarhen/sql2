@@ -11,9 +11,10 @@ import { CalendarIcon, BookOpenIcon, UsersIcon, ClockIcon, CheckCircleIcon, BarC
 import { auth } from "@/lib/auth";
 import { getAssignmentDetails } from "../../actions";
 
-export default async function AssignmentDetailsPage({ params }: { params: { assignmentId: string } }) {
+export default async function AssignmentDetailsPage({ params }: { params: Promise<{ assignmentId: string }> }) {
   const session = await auth();
   
+  const [awaitedParams] = await Promise.all([params]);
   if (!session?.user) {
     redirect("/auth/login");
   }
@@ -26,7 +27,8 @@ export default async function AssignmentDetailsPage({ params }: { params: { assi
     redirect("/auth/login");
   }
   
-  const assignmentDetails = await getAssignmentDetails(params.assignmentId);
+
+  const assignmentDetails = await getAssignmentDetails(awaitedParams.assignmentId);
   
   if (!assignmentDetails) {
     notFound();
@@ -81,7 +83,7 @@ export default async function AssignmentDetailsPage({ params }: { params: { assi
             </Link>
             
             {isStudent && !studentSubmission && (
-              <Link href={`/dashboard/assignments/${params.assignmentId}/submit`}>
+              <Link href={`/dashboard/assignments/${awaitedParams.assignmentId}/submit`}>
                 <Button 
                   size="sm" 
                   className="rounded-xl text-xs"
@@ -92,7 +94,7 @@ export default async function AssignmentDetailsPage({ params }: { params: { assi
             )}
             
             {isLecturerOrAdmin && (
-              <Link href={`/dashboard/assignments/${params.assignmentId}/grade`}>
+              <Link href={`/dashboard/assignments/${awaitedParams.assignmentId}/grade`}>
                 <Button 
                   size="sm" 
                   className="rounded-xl text-xs"
@@ -323,7 +325,7 @@ export default async function AssignmentDetailsPage({ params }: { params: { assi
                       
                       {assignmentDetails.submissions.length > 5 && (
                         <div className="text-center">
-                          <Link href={`/dashboard/assignments/${params.assignmentId}/submissions`}>
+                          <Link href={`/dashboard/assignments/${awaitedParams.assignmentId}/submissions`}>
                             <Button 
                               size="sm" 
                               variant="link" 

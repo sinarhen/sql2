@@ -9,12 +9,12 @@ import { getAssignmentDetails } from "../../../actions";
 import GradeForm from "./_components/grade-form";
 
 interface GradePageProps {
-  params: {
+  params: Promise<{
     assignmentId: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     student?: string;
-  };
+  }>;
 }
 
 export default async function GradePage({ params, searchParams }: GradePageProps) {
@@ -32,7 +32,8 @@ export default async function GradePage({ params, searchParams }: GradePageProps
     redirect("/dashboard/assignments");
   }
   
-  const assignmentDetails = await getAssignmentDetails(params.assignmentId);
+  const [awaitedParams, awaitedSearchParams] = await Promise.all([params, searchParams]);
+  const assignmentDetails = await getAssignmentDetails(awaitedParams.assignmentId);
   
   if (!assignmentDetails) {
     redirect("/dashboard/assignments");
@@ -53,8 +54,8 @@ export default async function GradePage({ params, searchParams }: GradePageProps
         </CardHeader>
         <CardContent className="text-xs">
           <GradeForm 
-            assignmentId={params.assignmentId} 
-            studentId={searchParams.student} 
+            assignmentId={awaitedParams.assignmentId} 
+            studentId={awaitedSearchParams.student} 
           />
         </CardContent>
       </Card>

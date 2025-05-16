@@ -39,6 +39,7 @@ export function LoginForm() {
       router.push(callbackUrl);
       router.refresh();
     } catch (error) {
+      console.error('Error during sign in:', error);
       setError('An error occurred during sign in');
     } finally {
       setLoading(false);

@@ -12,7 +12,9 @@ import { auth } from "@/lib/auth";
 import { 
   getCourseById, 
   getCourseAssignments, 
-  getCourseEnrollments 
+  getCourseEnrollments,
+  getCourseStats,
+  getAssignmentStats
 } from "../../actions";
 import EnrollButton from "../_components/enroll-button";
 
@@ -47,6 +49,9 @@ export default async function CourseDetailsPage({ params }: { params: { courseId
   const students = isLecturerOrAdmin 
     ? enrollments
     : [];
+  
+  // Get additional course statistics
+  const courseStats = await getCourseStats(params.courseId);
   
   return (
     <div>
@@ -102,7 +107,7 @@ export default async function CourseDetailsPage({ params }: { params: { courseId
                 <BookOpenIcon size={12} className="text-muted-foreground" />
                 <div>
                   <p className="text-muted-foreground">Total Assignments</p>
-                  <p className="font-medium">{assignments.length}</p>
+                  <p className="font-medium">{courseStats.assignmentsCount}</p>
                 </div>
               </div>
               
@@ -110,7 +115,7 @@ export default async function CourseDetailsPage({ params }: { params: { courseId
                 <UsersIcon size={12} className="text-muted-foreground" />
                 <div>
                   <p className="text-muted-foreground">Enrolled Students</p>
-                  <p className="font-medium">{students.length}</p>
+                  <p className="font-medium">{courseStats.enrollmentsCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -140,30 +145,44 @@ export default async function CourseDetailsPage({ params }: { params: { courseId
                 <p className="text-[10px] text-muted-foreground">No assignments available for this course yet.</p>
               ) : (
                 <div className="space-y-2">
-                  {assignments.slice(0, 5).map(assignment => (
-                    <div 
-                      key={assignment.id} 
-                      className="p-2 rounded-xl border border-border/40 bg-background/50 flex justify-between items-center"
-                    >
-                      <div>
-                        <p className="text-xs font-medium">{assignment.name}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          Due: {new Date(assignment.deadline).toLocaleDateString()}
-                        </p>
+                  {assignments.slice(0, 5).map(async (assignment) => {
+                    const stats = await getAssignmentStats(assignment.id);
+                    return (
+                      <div 
+                        key={assignment.id} 
+                        className="p-2 rounded-xl border border-border/40 bg-background/50 flex justify-between items-center"
+                      >
+                        <div>
+                          <p className="text-xs font-medium">{assignment.name}</p>
+                          <div className="flex gap-2">
+                            <p className="text-[10px] text-muted-foreground">
+                              Due: {new Date(assignment.deadline).toLocaleDateString()}
+                            </p>
+                            <div className="text-[10px]">
+                              <span className="text-blue-600">
+                                {stats.submittedCount}/{stats.totalStudents} submitted
+                              </span>
+                              {" • "}
+                              <span className="text-green-600">
+                                {stats.ratedCount}/{stats.submittedCount} rated
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        {(isLecturerOrAdmin || isUserEnrolled) && (
+                          <Link href={`/dashboard/assignments/${assignment.id}`}>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="rounded-xl text-[10px] h-6"
+                            >
+                              View
+                            </Button>
+                          </Link>
+                        )}
                       </div>
-                      {(isLecturerOrAdmin || isUserEnrolled) && (
-                        <Link href={`/dashboard/assignments/${assignment.id}`}>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="rounded-xl text-[10px] h-6"
-                          >
-                            View
-                          </Button>
-                        </Link>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                   
                   {assignments.length > 5 && (
                     <div className="text-center">

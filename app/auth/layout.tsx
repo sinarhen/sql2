@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { getUserById } from '../dashboard/actions';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default async function AuthLayout({
   children,
@@ -15,8 +16,16 @@ export default async function AuthLayout({
   }
   
   return (
-    <div className="flex min-h-screen items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex flex-col min-h-screen items-center justify-center gap-4">
+      <div>
+      {session ? (
+            <p className='text-center text-destructive'>
+Your session is invalid or expired please login again
+            </p>
+      ) : null}
       {children}
+      </div>
+      
     </div>
   );
 } 

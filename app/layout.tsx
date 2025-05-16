@@ -23,6 +23,7 @@ export default function RootLayout({
         <Providers>
           <div className="min-h-screen text-xs flex flex-col">                    
             <div className="fixed inset-0 -z-10 opacity-50 bg-[url('/grid-pattern.svg')]"></div>
+            {/* <div className="fixed inset-0 -s */}
             <Navbar />
             <main className="relative">{children}</main>
           </div>

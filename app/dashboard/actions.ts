@@ -703,4 +703,138 @@ export async function updateUserRole(userId: string, newRole: 'student' | 'lectu
     console.error("Error updating user role:", error);
     return { success: false, error: "Failed to update role" };
   }
+}
+
+// Get assignment submission statistics
+export async function getAssignmentStats(assignmentId: string) {
+  const totalEnrollments = await db.query.userCourses.findMany({
+    with: {
+      course: {
+        with: {
+          assignments: {
+            where: eq(assignments.id, assignmentId)
+          }
+        }
+      }
+    }
+  });
+  
+  // Get the course ID for this assignment to find total enrolled students
+  const assignment = await db.query.assignments.findFirst({
+    where: eq(assignments.id, assignmentId),
+  });
+  
+  if (!assignment) {
+    return { totalStudents: 0, submittedCount: 0, ratedCount: 0 };
+  }
+  
+  // Count enrolled students for this course
+  const enrolledStudents = await db.query.userCourses.findMany({
+    where: eq(userCourses.courseId, assignment.courseId),
+    with: {
+      user: {
+        where: eq(users.role, "student")
+      }
+    }
+  });
+  
+  const totalStudents = enrolledStudents.filter(e => e.user).length;
+  
+  // Count submissions for this assignment
+  const submittedCount = await db
+    .select({ count: count() })
+    .from(assignmentSubmissions)
+    .where(eq(assignmentSubmissions.assignmentId, assignmentId))
+    .then(res => res[0].count);
+  
+  // Count rated submissions
+  const ratedCount = await db
+    .select({ count: count() })
+    .from(assignmentSubmissions)
+    .where(
+      and(
+        eq(assignmentSubmissions.assignmentId, assignmentId),
+        sql`${assignmentSubmissions.rating} IS NOT NULL`
+      )
+    )
+    .then(res => res[0].count);
+  
+  return {
+    totalStudents,
+    submittedCount,
+    ratedCount
+  };
+}
+
+// Get detailed information about an assignment
+export async function getAssignmentDetails(assignmentId: string) {
+  const assignment = await db.query.assignments.findFirst({
+    where: eq(assignments.id, assignmentId),
+    with: {
+      course: true,
+      submissions: {
+        with: {
+          student: true
+        }
+      }
+    }
+  });
+  
+  if (!assignment) return null;
+  
+  const stats = await getAssignmentStats(assignmentId);
+  
+  return {
+    ...assignment,
+    stats
+  };
+}
+
+// Get courses where the user is a lecturer
+export async function getLecturerCourses(userId: string) {
+  const lecturerCourses = await db.query.courses.findMany({
+    where: eq(courses.lecturerId, userId),
+    orderBy: (courses, { desc }) => [desc(courses.createdAt)],
+  });
+  
+  return lecturerCourses;
+}
+
+// Get course statistics (assignments and enrollments)
+export async function getCourseStats(courseId: string) {
+  // Get total assignments count
+  const assignmentsCount = await db
+    .select({ count: count() })
+    .from(assignments)
+    .where(eq(assignments.courseId, courseId))
+    .then(res => res[0].count);
+  
+  // Get total enrollments count
+  const enrollmentsCount = await db
+    .select({ count: count() })
+    .from(userCourses)
+    .where(eq(userCourses.courseId, courseId))
+    .then(res => res[0].count);
+  
+  // Get submitted assignments stats
+  const courseAssignments = await db.query.assignments.findMany({
+    where: eq(assignments.courseId, courseId),
+  });
+  
+  const submissionStats = await Promise.all(
+    courseAssignments.map(async (assignment) => {
+      const stats = await getAssignmentStats(assignment.id);
+      return {
+        assignmentId: assignment.id,
+        assignmentName: assignment.name,
+        ...stats
+      };
+    })
+  );
+  
+  return {
+    assignmentsCount,
+    enrollmentsCount,
+    submissionStats
+  };
 } 

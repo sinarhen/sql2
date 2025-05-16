@@ -20,7 +20,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 motion-stagger-children">
           <div className="motion-preset-blur-left-sm motion-duration-500 motion-delay-100">
             <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
-              <CardHeader className="pb-2 bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardHeader className="pb-2 ">
                 <CardTitle className="text-xs md:text-sm tracking-tight flex items-center">
                   <span className="text-primary">Student Performance</span>
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">+4.2%</Badge>
@@ -66,7 +66,7 @@ export default function DashboardPage() {
           
           <div className="motion-preset-blur-right-sm motion-duration-500 motion-delay-300">
             <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
-              <CardHeader className="pb-2 bg-gradient-to-br from-blue-500/5 to-blue-500/10">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-xs md:text-sm tracking-tight flex items-center">
                   <span className="text-blue-600">Active Students</span>
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-blue-500/20 text-blue-600">+12</Badge>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
       
       <div className="mb-10 motion-preset-blur-up-sm motion-duration-600 motion-delay-300">
         <h2 className="text-xs md:text-sm font-medium mb-4 tracking-tight">Recent Activity</h2>
-        <Card className="glass-card border-border/40 bg-gradient-to-br from-transparent to-primary/5">
+        <Card>
           <CardContent className="p-4">
             <div className="space-y-4">
               {[1, 2, 3].map((item) => (

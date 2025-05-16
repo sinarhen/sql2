@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { AuthButtons } from './auth-buttons';
+import { Bot } from 'lucide-react';
 // Uncomment when needed
 // import { Avatar, AvatarFallback, AvatarImage } from '../src/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -42,6 +43,13 @@ export function Navbar() {
                 </Link>
                 <Link href="/dashboard/profile" className={cn("text-foreground/60 hover:text-foreground transition-colors")}>
                   Profile
+                </Link>
+                <Link 
+                  href="/dashboard/chat" 
+                  className={cn("text-foreground/60 hover:text-foreground transition-colors flex items-center gap-1")}
+                >
+                  <Bot size={12} />
+                  <span>AI Assistant</span>
                 </Link>
                 {userRole === 'lecturer' || userRole === 'admin' ? (
                   <>

@@ -1,20 +1,24 @@
 import { relations } from 'drizzle-orm';
 import { 
-  sqliteTable,
+  pgTable,
   text,
-  integer,
-  real
-} from 'drizzle-orm/sqlite-core';
-import { v4 as uuidv4 } from 'uuid';
+  timestamp,
+  real,
+  uuid,
+  pgEnum,
+  vector
+} from 'drizzle-orm/pg-core';
 
-export const users = sqliteTable('users', {
-  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
+export const roleEnum = pgEnum('role', ['lecturer', 'student', 'admin']);
+
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
-  role: text('role', { enum: ['lecturer', 'student', 'admin'] }).notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  role: roleEnum('role').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -23,12 +27,12 @@ export const usersRelations = relations(users, ({ many }) => ({
   formSubmissions: many(formSubmissions),
 }));
 
-export const courses = sqliteTable('courses', {
-  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
+export const courses = pgTable('courses', {
+  id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
-  lecturerId: text('lecturer_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  lecturerId: uuid('lecturer_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export const coursesRelations = relations(courses, ({ many }) => ({
@@ -37,12 +41,12 @@ export const coursesRelations = relations(courses, ({ many }) => ({
 }));
 
 // UserCourse table (many-to-many relationship)
-export const userCourses = sqliteTable('user_courses', {
-  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
-  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
+export const userCourses = pgTable('user_courses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  courseId: uuid('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export const userCoursesRelations = relations(userCourses, ({ one }) => ({
@@ -57,13 +61,13 @@ export const userCoursesRelations = relations(userCourses, ({ one }) => ({
 }));
 
 // Assignment table
-export const assignments = sqliteTable('assignments', {
-  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
+export const assignments = pgTable('assignments', {
+  id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
-  courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
-  deadline: integer('deadline', { mode: 'timestamp' }).notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  courseId: uuid('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
+  deadline: timestamp('deadline').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export const assignmentsRelations = relations(assignments, ({ one, many }) => ({
@@ -75,15 +79,15 @@ export const assignmentsRelations = relations(assignments, ({ one, many }) => ({
 }));
 
 // AssignmentSubmission table
-export const assignmentSubmissions = sqliteTable('assignment_submissions', {
-  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
+export const assignmentSubmissions = pgTable('assignment_submissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
   rating: real('rating'),
   content: text('content'),
-  assignmentId: text('assignment_id').notNull().references(() => assignments.id, { onDelete: 'cascade' }),
-  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  submission: integer('submission', { mode: 'timestamp' }).notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  assignmentId: uuid('assignment_id').notNull().references(() => assignments.id, { onDelete: 'cascade' }),
+  studentId: uuid('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  submission: timestamp('submission').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export const assignmentSubmissionsRelations = relations(assignmentSubmissions, ({ one }) => ({
@@ -99,26 +103,26 @@ export const assignmentSubmissionsRelations = relations(assignmentSubmissions, (
 }));
 
 // Form table
-export const forms = sqliteTable('forms', {
-  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
+export const forms = pgTable('forms', {
+  id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
-  end: integer('end', { mode: 'timestamp' }).notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
+  end: timestamp('end').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export const formsRelations = relations(forms, ({ many }) => ({
   submissions: many(formSubmissions),
 }));
 
-export const formSubmissions = sqliteTable('form_submissions', {
-  id: text('id').primaryKey().$defaultFn(() => uuidv4()),
+export const formSubmissions = pgTable('form_submissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
   content: text('content'),
-  formId: text('form_id').notNull().references(() => forms.id, { onDelete: 'cascade' }),
-  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().defaultNow(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().defaultNow(),
-}); 
+  formId: uuid('form_id').notNull().references(() => forms.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
 
 export const formSubmissionsRelations = relations(formSubmissions, ({ one }) => ({
   form: one(forms, {
@@ -128,6 +132,34 @@ export const formSubmissionsRelations = relations(formSubmissions, ({ one }) => 
   user: one(users, {
     fields: [formSubmissions.userId],
     references: [users.id],
+  }),
+}));
+
+// RAG Chatbot Tables
+export const resources = pgTable('resources', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const resourcesRelations = relations(resources, ({ many }) => ({
+  embeddings: many(embeddings),
+}));
+
+export const embeddings = pgTable('embeddings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  content: text('content').notNull(),
+  embedding: vector('embedding', { dimensions: 1536 }),
+  resourceId: uuid('resource_id').references(() => resources.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const embeddingsRelations = relations(embeddings, ({ one }) => ({
+  resource: one(resources, {
+    fields: [embeddings.resourceId],
+    references: [resources.id],
   }),
 })); 
 

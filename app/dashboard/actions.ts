@@ -9,9 +9,12 @@ import {
   assignmentSubmissions,
   userCourses,
   forms,
-  formSubmissions
+  formSubmissions,
+  resources,
+  embeddings
 } from "@/lib/db/drizzle/schema";
 import { eq, sql, count, avg, max, min, desc, and } from "drizzle-orm";
+import { generateEmbeddings } from "@/lib/ai/embedding";
 
 export type StudentStats = {
   totalStudents: number;
@@ -33,6 +36,9 @@ export type RecentActivity = {
 };
 
 export async function getUserById(id: string) {
+    if (!id || id === '') {
+        return null;
+    }
     return await db.select().from(users).where(eq(users.id, id)).then((res) => res[0])
 }
 
@@ -50,7 +56,7 @@ export async function getStudentStats(): Promise<StudentStats> {
     .where(
       and(
         eq(users.role, "student"),
-        sql`${users.createdAt} > datetime('now', '-1 month')`
+        sql`${users.createdAt} > NOW() - INTERVAL '1 month'`
       )
     )
     .then((res) => res[0].count);
@@ -63,7 +69,7 @@ export async function getStudentStats(): Promise<StudentStats> {
   const submissionsLastMonth = await db
     .select({ count: count() })
     .from(assignmentSubmissions)
-    .where(sql`${assignmentSubmissions.submission} > datetime('now', '-1 month')`)
+    .where(sql`${assignmentSubmissions.submission} > NOW() - INTERVAL '1 month'`)
     .then((res) => res[0].count);
 
   const avgScore = await db
@@ -207,7 +213,7 @@ export async function getPerformanceTrends() {
       })
       .from(assignmentSubmissions)
       .where(
-        sql`${assignmentSubmissions.submission} BETWEEN datetime('now', '-${i+1} month') AND datetime('now', '-${i} month')`
+        sql`${assignmentSubmissions.submission} BETWEEN NOW() - INTERVAL '${i+1} month' AND NOW() - INTERVAL '${i} month'`
       );
 
     const date = new Date();
@@ -1164,10 +1170,10 @@ export async function getStudentDashboardData(userId: string) {
     // 1. Get student stats in a single query
     db.select({
       totalStudents: count(users.id),
-      newStudentsLastMonth: sql`count(case when ${users.createdAt} > datetime('now', '-1 month') then 1 end)`,
-      totalSubmissions: sql`(select count(*) from ${assignmentSubmissions})`,
-      submissionsLastMonth: sql`(select count(*) from ${assignmentSubmissions} where ${assignmentSubmissions.submission} > datetime('now', '-1 month'))`,
-      averageScore: sql`ROUND(AVG(${assignmentSubmissions.rating}), 1)`
+      newStudentsLastMonth: sql`COUNT(CASE WHEN ${users.createdAt} > NOW() - INTERVAL '1 month' THEN 1 END)`,
+      totalSubmissions: sql`(SELECT COUNT(*) FROM ${assignmentSubmissions})`,
+      submissionsLastMonth: sql`(SELECT COUNT(*) FROM ${assignmentSubmissions} WHERE ${assignmentSubmissions.submission} > NOW() - INTERVAL '1 month')`,
+      averageScore: sql`AVG(${assignmentSubmissions.rating})::numeric(10,1)`
     })
     .from(users)
     .leftJoin(assignmentSubmissions, eq(assignmentSubmissions.studentId, users.id))
@@ -1178,7 +1184,7 @@ export async function getStudentDashboardData(userId: string) {
     db.select({
       courseId: courses.id,
       courseName: courses.name,
-      avgScore: sql`ROUND(AVG(${assignmentSubmissions.rating}), 1)`,
+      avgScore: sql`AVG(${assignmentSubmissions.rating})::numeric(10,1)`,
       submissions: count(assignmentSubmissions.id)
     })
     .from(userCourses)
@@ -1226,7 +1232,7 @@ export async function getStudentDashboardData(userId: string) {
     .where(
       and(
         eq(userCourses.userId, userId),
-        sql`${assignments.deadline} >= datetime('now')` // Only include future assignments
+        sql`${assignments.deadline} >= NOW()` // Only include future assignments
       )
     )
     .orderBy(assignments.deadline)
@@ -1296,10 +1302,10 @@ export async function getLecturerDashboardData(userId: string) {
       courseId: courses.id,
       courseName: courses.name,
       studentCount: sql`(SELECT COUNT(*) FROM ${userCourses} WHERE ${userCourses.courseId} = ${courses.id})`,
-      avgScore: sql`ROUND(AVG(${assignmentSubmissions.rating}), 1)`,
+      avgScore: sql`AVG(${assignmentSubmissions.rating})::numeric(10,1)`,
       submissions: count(assignmentSubmissions.id),
-      completionRate: sql`ROUND((COUNT(${assignmentSubmissions.id}) * 100.0) / 
-        (SELECT COUNT(*) FROM ${userCourses} WHERE ${userCourses.courseId} = ${courses.id}), 1)`
+      completionRate: sql`(COUNT(${assignmentSubmissions.id}) * 100.0 / 
+        NULLIF((SELECT COUNT(*) FROM ${userCourses} WHERE ${userCourses.courseId} = ${courses.id}), 0))::numeric(10,1)`
     })
     .from(courses)
     .leftJoin(assignments, eq(assignments.courseId, courses.id))
@@ -1310,8 +1316,8 @@ export async function getLecturerDashboardData(userId: string) {
     // 2. Get recent submissions statistics
     db.select({
       totalSubmissions: count(),
-      recentSubmissions: sql`COUNT(CASE WHEN ${assignmentSubmissions.submission} > datetime('now', '-1 week') THEN 1 END)`,
-      avgScore: sql`ROUND(AVG(${assignmentSubmissions.rating}), 1)`,
+      recentSubmissions: sql`COUNT(CASE WHEN ${assignmentSubmissions.submission} > NOW() - INTERVAL '1 week' THEN 1 END)`,
+      avgScore: sql`AVG(${assignmentSubmissions.rating})::numeric(10,1)`,
       gradedCount: sql`COUNT(CASE WHEN ${assignmentSubmissions.rating} IS NOT NULL THEN 1 END)`
     })
     .from(assignmentSubmissions)
@@ -1422,4 +1428,108 @@ export async function getDashboardData(userId: string) {
   } else {
     return getStudentDashboardData(userId);
   }
+}
+
+// RAG Chatbot actions
+export interface CreateResourceParams {
+  content: string;
+}
+
+// Create a resource entry and its embeddings
+export async function createResource(params: CreateResourceParams) {
+  const { content, } = params;
+  
+  // Insert the resource
+  const [resource] = await db
+    .insert(resources)
+    .values({
+      content,
+    })
+    .returning();
+  
+  // Generate embeddings for the content
+  const contentEmbeddings = await generateEmbeddings(content);
+  
+  // Insert all embeddings
+  for (const { content: chunkContent, embedding } of contentEmbeddings) {
+    await db.insert(embeddings).values({
+      content: chunkContent,
+      embedding,
+      resourceId: resource.id,
+    });
+  }
+  
+  return resource;
+}
+
+// Get user info for RAG chatbot
+export async function getUserInfo(userId: string) {
+  const user = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .then((res) => res[0]);
+  
+  return user;
+}
+
+// Get user course info for RAG chatbot
+export async function getUserCoursesInfo(userId: string) {
+  const userCourseInfo = await db
+    .select({
+      courseName: courses.name,
+      courseId: courses.id,
+      createdAt: userCourses.createdAt,
+    })
+    .from(userCourses)
+    .innerJoin(courses, eq(userCourses.courseId, courses.id))
+    .where(eq(userCourses.userId, userId));
+  
+  return userCourseInfo;
+}
+
+// Get user assignment info for RAG chatbot
+export async function getUserAssignmentsInfo(userId: string) {
+  const userAssignments = await db
+    .select({
+      assignmentName: assignments.name,
+      assignmentId: assignments.id,
+      deadline: assignments.deadline,
+      courseName: courses.name,
+      courseId: courses.id,
+      submission: assignmentSubmissions.submission,
+      rating: assignmentSubmissions.rating,
+    })
+    .from(assignments)
+    .innerJoin(courses, eq(assignments.courseId, courses.id))
+    .innerJoin(userCourses, eq(userCourses.courseId, courses.id))
+    .leftJoin(
+      assignmentSubmissions,
+      and(
+        eq(assignmentSubmissions.assignmentId, assignments.id),
+        eq(assignmentSubmissions.studentId, userId)
+      )
+    )
+    .where(eq(userCourses.userId, userId));
+  
+  return userAssignments;
+}
+
+// Get all resources for RAG chatbot
+export async function getAllResources() {
+  const allResources = await db
+    .select({
+      id: resources.id,
+      content: resources.content,
+      createdAt: resources.createdAt,
+      userName: users.name,
+    })
+    .from(resources)
+  
+  return allResources;
 } 

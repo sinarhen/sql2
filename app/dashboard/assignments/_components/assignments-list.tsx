@@ -53,7 +53,7 @@ export function AssignmentsList({ assignments, courses, userRole }: AssignmentsL
   const renderAssignmentsList = () => {
     if (assignments.length === 0) {
       return (
-        <p className="text-sm text-muted-foreground py-4">
+        <p className="text-sm text-muted-foreground py-4 motion-preset-blur-up-sm motion-duration-500">
           {userRole === "lecturer" 
             ? "You haven't created any assignments yet." 
             : "You don't have any assignments."}
@@ -63,7 +63,7 @@ export function AssignmentsList({ assignments, courses, userRole }: AssignmentsL
     
     if (filteredAssignments.length === 0) {
       return (
-        <p className="text-sm text-muted-foreground py-4">
+        <p className="text-sm text-muted-foreground py-4 motion-preset-blur-up-sm motion-duration-500">
           No assignments match your filter.
         </p>
       );
@@ -71,8 +71,11 @@ export function AssignmentsList({ assignments, courses, userRole }: AssignmentsL
     
     return (
       <div className="space-y-4">
-        {filteredAssignments.map(assignment => (
-          <Card key={assignment.id} className="overflow-hidden">
+        {filteredAssignments.map((assignment, idx) => (
+          <Card 
+            key={assignment.id} 
+            className={`overflow-hidden motion-preset-blur-up-sm motion-duration-500 motion-delay-${(idx % 5) * 100} glass-card border-border/40 hover:shadow-md transition-all duration-300`}
+          >
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div>
@@ -164,7 +167,7 @@ export function AssignmentsList({ assignments, courses, userRole }: AssignmentsL
   return (
     <div className="w-full">
       {userRole === "student" && assignments.length > 0 && (
-        <Tabs defaultValue="all" className="mb-4" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="all" className="mb-4 motion-preset-blur-up-sm motion-duration-500" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-background/50 backdrop-blur-sm">
             <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
             <TabsTrigger value="completed" className="text-xs">Completed</TabsTrigger>

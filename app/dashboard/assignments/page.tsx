@@ -65,8 +65,8 @@ export default async function AssignmentsPage() {
   }
   
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="flex flex-col gap-6 motion-preset-blur-up-sm motion-duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 motion-preset-blur-up-sm motion-duration-600 motion-delay-100">
         <PageHeader className="mb-0">
           <PageHeaderTitle>Assignments</PageHeaderTitle>
           <PageHeaderDescription>
@@ -76,7 +76,7 @@ export default async function AssignmentsPage() {
         
         {(userResult.role === "lecturer" || userResult.role === "admin") && (
           <Link href="/dashboard/assignments/create">
-            <Button size="sm" className="rounded-xl text-xs gap-1">
+            <Button size="sm" className="rounded-xl text-xs gap-1 motion-preset-blur-right-sm motion-duration-500 motion-delay-200">
               <PlusIcon size={14} />
               Create Assignment
             </Button>
@@ -84,11 +84,13 @@ export default async function AssignmentsPage() {
         )}
       </div>
       
-      <AssignmentsList 
-        assignments={userAssignments} 
-        courses={courses}
-        userRole={userResult.role}
-      />
+      <div className="motion-preset-blur-up-sm motion-duration-700 motion-delay-300 motion-stagger-children">
+        <AssignmentsList 
+          assignments={userAssignments} 
+          courses={courses}
+          userRole={userResult.role}
+        />
+      </div>
     </div>
   );
 } 

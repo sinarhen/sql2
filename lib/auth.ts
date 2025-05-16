@@ -85,12 +85,19 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt(payload) {
-      if (payload.session?.user) {
-        payload.token.role = payload.session.user.role;
-        payload.token.id = payload.session.user.id;
+    async jwt({ token, user, session, trigger }) {
+      // Initial sign in
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
       }
-      return payload.token;
+
+      // Handle updates from session.update()
+      if (trigger === "update" && session?.user) {
+        token.role = session.user.role;
+      }
+      
+      return token;
     },
     async session({ session, token }) {
       if (token && session.user) {

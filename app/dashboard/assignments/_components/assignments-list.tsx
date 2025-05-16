@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckIcon, ExternalLinkIcon } from "lucide-react";
+import { CheckIcon, ExternalLinkIcon, BarChart3Icon } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Assignment {
@@ -78,12 +78,20 @@ export function AssignmentsList({ assignments, courses, userRole }: AssignmentsL
                 <div>
                   <CardTitle className="font-medium text-xs flex items-center gap-2">
                     {assignment.name}
-                    {assignment.isCompleted && userRole === "student" && (
-                      <Badge className="text-[10px] bg-green-500/20 text-green-600 rounded-xl">
-                        <CheckIcon size={10} className="mr-1" />
-                        Completed
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {assignment.isCompleted && userRole === "student" && (
+                        <Badge className="text-[10px] bg-green-500/20 text-green-600 rounded-xl">
+                          <CheckIcon size={10} className="mr-1" />
+                          Completed
+                        </Badge>
+                      )}
+                      {userRole === "student" && assignment.isCompleted && assignment.submission && assignment.submission.rating !== null && (
+                        <Badge className="text-[10px] bg-blue-500/20 text-blue-600 rounded-xl">
+                          <BarChart3Icon size={10} className="mr-1" />
+                          Grade: {assignment.submission.rating}/100
+                        </Badge>
+                      )}
+                    </div>
                   </CardTitle>
                   <p className="text-[10px] text-muted-foreground mt-1">
                     Course: {assignment.courseName || getCourseById(assignment.courseId)}
@@ -126,7 +134,11 @@ export function AssignmentsList({ assignments, courses, userRole }: AssignmentsL
                 <div className="flex justify-between items-center">
                   <div className="text-xs text-muted-foreground">
                     {userRole === "student" ? (
-                      <p>View your submission and feedback.</p>
+                      assignment.submission && assignment.submission.rating !== null ? (
+                        <p>Your grade: <span className="font-medium text-primary">{assignment.submission.rating}/100</span></p>
+                      ) : (
+                        <p>View your submission and feedback.</p>
+                      )
                     ) : (
                       <p>View and grade student submissions for this assignment.</p>
                     )}

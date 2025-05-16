@@ -88,7 +88,6 @@ export default async function AssignmentsPage() {
         assignments={userAssignments} 
         courses={courses}
         userRole={userResult.role}
-        userId={userResult.id}
       />
     </div>
   );

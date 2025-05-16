@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckIcon, ExternalLinkIcon } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { submitAssignment } from "../../actions";
-import { Textarea } from "@/components/ui/textarea";
 
 interface Assignment {
   id: string;
@@ -33,37 +31,16 @@ interface AssignmentsListProps {
   assignments: Assignment[];
   courses: Course[];
   userRole: string;
-  userId: string;
+  userId?: string;
 }
 
-export function AssignmentsList({ assignments, courses, userRole, userId }: AssignmentsListProps) {
-  const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
-  const [submissions, setSubmissions] = useState<Record<string, string>>({});
+export function AssignmentsList({ assignments, courses, userRole }: AssignmentsListProps) {
   const [activeTab, setActiveTab] = useState("all");
   
   const getCourseById = (courseId: string) => {
     return courses.find(course => course.id === courseId)?.name || 
       assignments.find(a => a.courseId === courseId)?.courseName || 
       "Unknown Course";
-  };
-  
-  const handleSubmit = async (assignmentId: string) => {
-    const content = submissions[assignmentId];
-    if (!content?.trim()) return;
-    
-    setSubmitting(prev => ({ ...prev, [assignmentId]: true }));
-    try {
-      await submitAssignment({
-        assignmentId,
-        studentId: userId,
-        content
-      });
-      // Clear the submission after successful submit
-      setSubmissions(prev => ({ ...prev, [assignmentId]: "" }));
-      window.location.reload();
-    } finally {
-      setSubmitting(prev => ({ ...prev, [assignmentId]: false }));
-    }
   };
   
   const filteredAssignments = assignments.filter(assignment => {
@@ -131,28 +108,19 @@ export function AssignmentsList({ assignments, courses, userRole, userId }: Assi
             </CardHeader>
             <CardContent>
               {userRole === "student" && !assignment.isCompleted ? (
-                <div className="space-y-3">
-                  <Textarea
-                    placeholder="Your submission"
-                    value={submissions[assignment.id] || ""}
-                    onChange={(e) => setSubmissions(prev => ({ 
-                      ...prev, 
-                      [assignment.id]: e.target.value 
-                    }))}
-                    className="w-full text-xs h-24 rounded-xl"
-                    disabled={submitting[assignment.id]}
-                  />
-                  <div className="flex justify-end">
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      className="text-xs rounded-xl"
-                      onClick={() => handleSubmit(assignment.id)}
-                      disabled={submitting[assignment.id] || !submissions[assignment.id]?.trim()}
-                    >
-                      Submit
-                    </Button>
+                <div className="flex justify-between items-center">
+                  <div className="text-xs text-muted-foreground">
+                    <p>Submit your work for this assignment.</p>
                   </div>
+                  <Link href={`/dashboard/assignments/${assignment.id}/submit`}>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="text-xs rounded-xl"
+                    >
+                      Submit Assignment
+                    </Button>
+                  </Link>
                 </div>
               ) : (
                 <div className="flex justify-between items-center">

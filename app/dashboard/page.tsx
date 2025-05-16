@@ -43,10 +43,10 @@ export default function DashboardPage() {
           
           <div className="motion-preset-blur-up-sm motion-duration-500 motion-delay-200">
             <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
-              <CardHeader className="pb-2 bg-gradient-to-br from-purple-500/5 to-purple-500/10">
-                <CardTitle className="text-xs md:text-sm tracking-tight flex items-center">
-                  <span className="text-purple-600">Course Completion</span>
-                  <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-purple-500/20 text-purple-600">92%</Badge>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs md:text-sm tracking-tight flex items-center text-purple-600">
+                  Course Completion
+                  <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-purple-500/20 ">92%</Badge>
                 </CardTitle>
                 <CardDescription className="text-[10px]">Students on track to complete</CardDescription>
               </CardHeader>

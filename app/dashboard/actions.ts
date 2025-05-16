@@ -234,10 +234,10 @@ export async function createCourse(name: string, lecturerId: string) {
     })
     .returning();
 
-  await db.insert(userCourses).values({
-    userId: lecturerId,
-    courseId: newCourse.id,
-  });
+  // await db.insert(userCourses).values({
+  //   userId: lecturerId,
+  //   courseId: newCourse.id,
+  // });
 
   revalidatePath("/dashboard/courses");
   return newCourse;
@@ -707,18 +707,6 @@ export async function updateUserRole(userId: string, newRole: 'student' | 'lectu
 
 // Get assignment submission statistics
 export async function getAssignmentStats(assignmentId: string) {
-  const totalEnrollments = await db.query.userCourses.findMany({
-    with: {
-      course: {
-        with: {
-          assignments: {
-            where: eq(assignments.id, assignmentId)
-          }
-        }
-      }
-    }
-  });
-  
   // Get the course ID for this assignment to find total enrolled students
   const assignment = await db.query.assignments.findFirst({
     where: eq(assignments.id, assignmentId),
@@ -729,16 +717,23 @@ export async function getAssignmentStats(assignmentId: string) {
   }
   
   // Count enrolled students for this course
-  const enrolledStudents = await db.query.userCourses.findMany({
+  const enrollments = await db.query.userCourses.findMany({
     where: eq(userCourses.courseId, assignment.courseId),
-    with: {
-      user: {
-        where: eq(users.role, "student")
-      }
-    }
   });
   
-  const totalStudents = enrolledStudents.filter(e => e.user).length;
+  // Get all student users
+  const studentIds = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.role, "student"))
+    .then(result => result.map(row => row.id));
+  
+  // Filter enrollments to only include students
+  const studentEnrollments = enrollments.filter(
+    enrollment => studentIds.includes(enrollment.userId)
+  );
+  
+  const totalStudents = studentEnrollments.length;
   
   // Count submissions for this assignment
   const submittedCount = await db
@@ -953,4 +948,174 @@ export async function getAssignmentSubmissions(assignmentId: string) {
   });
   
   return submissions;
+}
+
+// Get student's progress in a course
+export async function getStudentCourseProgress(studentId: string, courseId: string) {
+  // Get all assignments for this course
+  const courseAssignments = await db.query.assignments.findMany({
+    where: eq(assignments.courseId, courseId),
+  });
+  
+  const totalAssignments = courseAssignments.length;
+  
+  if (totalAssignments === 0) {
+    return {
+      completedAssignments: 0,
+      totalAssignments: 0,
+      completionRate: 0,
+      averageGrade: null
+    };
+  }
+  
+  // Get student's submissions for this course
+  const studentSubmissions = await db.query.assignmentSubmissions.findMany({
+    where: and(
+      eq(assignmentSubmissions.studentId, studentId),
+      sql`${assignmentSubmissions.assignmentId} IN (${courseAssignments.map(a => a.id).join(',')})`
+    )
+  });
+  
+  const completedAssignments = studentSubmissions.length;
+  const completionRate = (completedAssignments / totalAssignments) * 100;
+  
+  // Calculate average grade from rated submissions
+  const ratedSubmissions = studentSubmissions.filter(sub => sub.rating !== null);
+  const averageGrade = ratedSubmissions.length > 0
+    ? ratedSubmissions.reduce((sum, sub) => sum + (sub.rating || 0), 0) / ratedSubmissions.length
+    : null;
+  
+  return {
+    completedAssignments,
+    totalAssignments,
+    completionRate,
+    averageGrade
+  };
+}
+
+// Check if student can submit assignment
+export async function canSubmitAssignment(assignmentId: string, studentId: string) {
+  // Check if the assignment exists
+  const assignment = await db.query.assignments.findFirst({
+    where: eq(assignments.id, assignmentId),
+    with: {
+      course: true
+    }
+  });
+  
+  if (!assignment) {
+    return { 
+      canSubmit: false, 
+      message: "Assignment not found", 
+      assignment: null,
+      existingSubmission: null,
+      courseProgress: null
+    };
+  }
+  
+  // Check if student is enrolled in the course
+  const enrollment = await db.query.userCourses.findFirst({
+    where: and(
+      eq(userCourses.userId, studentId),
+      eq(userCourses.courseId, assignment.course.id)
+    )
+  });
+  
+  if (!enrollment) {
+    return { 
+      canSubmit: false, 
+      message: "You are not enrolled in this course", 
+      assignment,
+      existingSubmission: null,
+      courseProgress: null
+    };
+  }
+  
+  // Check if student has already submitted this assignment
+  const existingSubmission = await db.query.assignmentSubmissions.findFirst({
+    where: and(
+      eq(assignmentSubmissions.assignmentId, assignmentId),
+      eq(assignmentSubmissions.studentId, studentId)
+    )
+  });
+  
+  if (existingSubmission) {
+    const courseProgress = await getStudentCourseProgress(studentId, assignment.course.id);
+    
+    return { 
+      canSubmit: false, 
+      message: "You have already submitted this assignment", 
+      assignment,
+      existingSubmission,
+      courseProgress
+    };
+  }
+  
+  // Get student's course progress
+  const courseProgress = await getStudentCourseProgress(studentId, assignment.course.id);
+  
+  return { 
+    canSubmit: true, 
+    message: null, 
+    assignment,
+    existingSubmission: null,
+    courseProgress
+  };
+}
+
+// Get detailed submission page data
+export async function getSubmissionPageData(assignmentId: string, userId: string) {
+  // Check if user exists and is a student
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId)
+  });
+  
+  if (!user || user.role !== "student") {
+    return { error: "Unauthorized" };
+  }
+  
+  // Get assignment details with course info
+  const assignmentResult = await db.query.assignments.findFirst({
+    where: eq(assignments.id, assignmentId),
+    with: {
+      course: true
+    }
+  });
+  
+  if (!assignmentResult) {
+    return { error: "Assignment not found" };
+  }
+  
+  // Check if student has already submitted
+  const existingSubmission = await db.query.assignmentSubmissions.findFirst({
+    where: and(
+      eq(assignmentSubmissions.assignmentId, assignmentId),
+      eq(assignmentSubmissions.studentId, userId)
+    )
+  });
+  
+  // Get course progress stats
+  const courseProgress = await getStudentCourseProgress(userId, assignmentResult.course.id);
+  
+  // Get recent submissions by this student (last 5)
+  const recentSubmissions = await db.query.assignmentSubmissions.findMany({
+    where: eq(assignmentSubmissions.studentId, userId),
+    with: {
+      assignment: {
+        with: {
+          course: true
+        }
+      }
+    },
+    orderBy: (assignmentSubmissions, { desc }) => [desc(assignmentSubmissions.submission)],
+    limit: 5
+  });
+  
+  return {
+    user,
+    assignment: assignmentResult,
+    existingSubmission,
+    courseProgress,
+    recentSubmissions
+  };
 } 

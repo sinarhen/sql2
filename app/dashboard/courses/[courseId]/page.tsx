@@ -44,9 +44,8 @@ export default async function CourseDetailsPage({ params }: { params: { courseId
   const isUserEnrolled = enrollments.some(enrollment => enrollment.userId === userResult.id);
   const isLecturerOrAdmin = userResult.role === "lecturer" || userResult.role === "admin";
   
-  // Get enrolled students (only for lecturers/admins)
   const students = isLecturerOrAdmin 
-    ? enrollments.filter(enrollment => enrollment.user.role === "student")
+    ? enrollments
     : [];
   
   return (

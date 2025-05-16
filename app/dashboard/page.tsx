@@ -6,7 +6,7 @@ import { PageHeader, PageHeaderTitle } from '../../components/page-header';
 
 export default function DashboardPage() {
   return (
-    <div className="p-6 md:p-8">
+    <div>
       <div className="motion-preset-blur-up-sm motion-duration-500">
         <div className="flex justify-between items-center mb-6">
           <PageHeader className="mb-0">

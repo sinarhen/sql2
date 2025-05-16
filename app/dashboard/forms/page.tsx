@@ -1,14 +1,15 @@
-import { getServerSession } from "next-auth";
+
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { forms, users } from "@/drizzle/schema";
-import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../_components/page-header";
+import { forms, users } from "@/components/ui/drizzle/schema";
+import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../../../components/page-header";
 import { FormsList } from "./_components/forms-list";
 import { AddFormForm } from "./_components/add-form-form";
+import { auth } from "@/lib/auth";
 
 export default async function FormsPage() {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user) {
     redirect("/auth/login");

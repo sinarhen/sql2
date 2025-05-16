@@ -1,10 +1,9 @@
-import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import Link from 'next/link';
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { users } from "@/drizzle/schema";
-import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../_components/page-header";
+import { users } from "@/components/ui/drizzle/schema";
+import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../../../components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,12 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search } from "lucide-react";
 import { getAllCourses } from "../actions";
 import EnrollButton from "./_components/enroll-button";
+import { auth } from "@/lib/auth";
 
 // Define course colors for visual variety
 const COURSE_COLORS = ["primary", "purple", "blue", "cyan", "indigo", "pink"];
 
 export default async function CoursesPage() {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user) {
     redirect("/auth/login");
@@ -44,17 +44,31 @@ export default async function CoursesPage() {
             <PageHeaderDescription>Browse and enroll in our educational courses</PageHeaderDescription>
           </PageHeader>
           
-          <Link href="/dashboard/my-courses">
-            <Button 
-              size="sm" 
-              className="rounded-xl text-xs"
-            >
-              View My Courses
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            {(userResult.role === "lecturer" || userResult.role === "admin") && (
+              <Link href="/dashboard/courses/create">
+                <Button 
+                  size="sm" 
+                  className="rounded-xl text-xs"
+                  variant="default"
+                >
+                  Create Course
+                </Button>
+              </Link>
+            )}
+            <Link href="/dashboard/my-courses">
+              <Button 
+                size="sm" 
+                className="rounded-xl text-xs"
+                variant="outline"
+              >
+                View My Courses
+              </Button>
+            </Link>
+          </div>
         </div>
       
-        <Card className="bg-card/20 backdrop-blur-sm rounded-xl p-4 mb-6 border border-border/20 glass-card">
+        <Card className="rounded-xl p-4 mb-6 border border-border/20 glass-card">
           <CardContent className="flex flex-col sm:flex-row justify-between gap-2 px-0 py-0">
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none">

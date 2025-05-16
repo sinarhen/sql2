@@ -252,7 +252,7 @@ function FeatureWobbleCard({ title, className, description, badge }: { title: st
 
 function TestimonialCard({ quote, author, role }: { quote: string; author: string; role: string }) {
   return (
-    <div className="bg-card/20 backdrop-blur-sm rounded-xl p-4 h-full shadow-sm border border-border/10 glass-card">
+    <div className="-sm rounded-xl p-4 h-full shadow-sm border border-border/10 glass-card">
       <div className="mb-3">
         {[1, 2, 3, 4, 5].map((star) => (
           <span key={star} className="text-yellow-400 inline-block text-[10px]">★</span>

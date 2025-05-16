@@ -4,21 +4,22 @@ import { redirect, notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PageHeader, PageHeaderTitle, PageHeaderDescription } from '../_components/page-header';
+import { PageHeader, PageHeaderTitle, PageHeaderDescription } from '../../../components/page-header';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { users } from "@/drizzle/schema";
+import { users } from "@/components/ui/drizzle/schema";
 import { getUserCourses } from "../actions";
+import { auth } from '@/lib/auth';
 
 
 // Define course colors by index to use dynamically
 const COURSE_COLORS = ["primary", "purple", "blue", "cyan", "indigo", "pink"];
 
 export default async function CoursesPage() {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user) {
     redirect("/auth/login");

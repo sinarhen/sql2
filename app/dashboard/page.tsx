@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PageHeader, PageHeaderTitle } from './_components/page-header';
+import { PageHeader, PageHeaderTitle } from '../../components/page-header';
 
 export default function DashboardPage() {
   return (

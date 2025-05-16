@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,9 +43,10 @@ export function AddAssignmentForm({ courses }: AddAssignmentFormProps) {
   };
   
   return (
-    <Card className=" border-slate-700/10">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">Create a new assignment</CardTitle>
+    <Card >
+      <CardHeader>
+        <CardTitle>Create a new assignment</CardTitle>
+        <CardDescription>Create a new assignment for a course</CardDescription>
       </CardHeader>
       <CardContent>
         {courses.length === 0 ? (
@@ -92,8 +93,8 @@ export function AddAssignmentForm({ courses }: AddAssignmentFormProps) {
             </div>
             <div className="flex justify-end">
               <Button 
+                size="sm"
                 type="submit" 
-                className="rounded-xl"
                 disabled={isSubmitting || !name.trim() || !courseId || !deadline}
               >
                 Create Assignment

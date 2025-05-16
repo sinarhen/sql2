@@ -1,32 +1,44 @@
-import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { JWT } from "next-auth/jwt";
+import bcrypt from "bcrypt";
+import { db } from "./db";
+import { users } from "../components/ui/drizzle/schema";
+import { eq } from "drizzle-orm";
 
-// Extend the user and session types
-declare module "next-auth" {
-  interface User {
-    id: string;
-    role: string;
-  }
+import type {
+  GetServerSidePropsContext,
+  NextApiRequest,
+  NextApiResponse,
+} from "next"
+import type { NextAuthOptions } from "next-auth"
+import { getServerSession } from "next-auth"
   
-  interface Session {
-    user: {
+  
+declare module "next-auth" {
+    interface Session {
+      user: {
+        id: string;
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+        role: "admin" | "lecturer" | "student";
+      }
+    }
+  
+    interface User {
       id: string;
-      role: string;
       name?: string | null;
       email?: string | null;
-      image?: string | null;
+      role: "admin" | "lecturer" | "student";
     }
   }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    role: string;
+  
+  declare module "next-auth/jwt" {
+    interface JWT {
+      id: string;
+      role: "admin" | "lecturer" | "student";
+    }
   }
-}
-
+  
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -41,24 +53,28 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Replace with your actual authentication logic
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
+          const user = await db.query.users.findFirst({
+            where: eq(users.email, credentials.email),
           });
 
-          const user = await response.json();
-
-          if (response.ok && user) {
-            return user;
+          if (!user) {
+            return null;
           }
-          
-          return null;
+
+          const passwordMatch = await bcrypt.compare(credentials.password, user.passwordHash);
+
+          if (!passwordMatch) {
+            return null;
+          }
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
         } catch (error) {
+          console.error("Auth error:", error);
           return null;
         }
       }
@@ -67,24 +83,34 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
-  pages: {
-    signIn: "/auth/login",
-    newUser: "/auth/register",
-  },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
+    async jwt(payload) {
+      if (payload.session?.user) {
+        payload.token.role = payload.session.user.role;
+        payload.token.id = payload.session.user.id;
       }
-      return token;
+      return payload.token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role;
+        session.user.id = token.id as string;
+        session.user.role = token.role as "admin" | "lecturer" | "student";
       }
       return session;
     },
   },
-}; 
+  pages: {
+    signIn: "/auth/login",
+    error: "/auth/error",
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+} 
+
+export function auth(
+    ...args:
+      | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
+      | [NextApiRequest, NextApiResponse]
+      | []
+  ) {
+    return getServerSession(...args, authOptions)
+  }

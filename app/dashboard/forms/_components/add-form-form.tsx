@@ -31,9 +31,9 @@ export function AddFormForm() {
   };
   
   return (
-    <Card className=" border-slate-700/10">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">Create a new feedback form</CardTitle>
+    <Card className="">
+      <CardHeader>
+        <CardTitle>Create a new feedback form</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

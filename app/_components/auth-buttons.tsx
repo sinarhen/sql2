@@ -14,11 +14,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { updateUserRole } from '@/app/dashboard/actions';
+import { useRouter } from 'next/navigation';
 
 export function AuthButtons() {
   const { data: session, status, update } = useSession();
   const [isUpdating, setIsUpdating] = useState(false);
-  
+  const router = useRouter();
   if (status === 'loading' || isUpdating) {
     return <div className="h-8 w-20 bg-muted animate-pulse rounded-xl"></div>;
   }
@@ -30,13 +32,30 @@ export function AuthButtons() {
     setIsUpdating(true);
     
     try {
-      await update({ 
+      // Update role using server action
+      const result = await updateUserRole(session.user.id, newRole);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update role');
+      }
+      
+      // Update the session with the new role
+      await update({
         ...session,
-        user: { 
-          ...session.user, 
-          role: newRole 
+        user: {
+          ...session.user,
+          role: newRole
         }
       });
+      
+      // Wait a moment to ensure session update is processed
+      // setTimeout(() => {
+      //   route
+      // }, 300);
+      router.refresh();
+
+    } catch (error) {
+      console.error('Failed to toggle role:', error);
     } finally {
       setIsUpdating(false);
     }

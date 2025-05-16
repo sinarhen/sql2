@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { PageHeader, PageHeaderTitle, PageHeaderDescription } from '../_components/page-header';
+import { PageHeader, PageHeaderTitle, PageHeaderDescription } from '../../../components/page-header';
 
 export default function StudentsPage() {
   // Sample students data
@@ -89,7 +89,7 @@ export default function StudentsPage() {
           </div>
         </div>
       
-        <div className="bg-card/20 backdrop-blur-sm rounded-xl p-4 mb-6 border border-border/20 glass-card motion-preset-blur-left-sm motion-duration-500 motion-delay-100">
+        <div className="-sm rounded-xl p-4 mb-6 border border-border/20 glass-card motion-preset-blur-left-sm motion-duration-500 motion-delay-100">
           <div className="flex flex-col sm:flex-row justify-between gap-2">
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground pointer-events-none">

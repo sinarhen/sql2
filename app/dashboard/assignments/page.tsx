@@ -1,14 +1,14 @@
-import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { assignments, courses, users, userCourses } from "@/drizzle/schema";
-import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../_components/page-header";
+import { assignments, courses, users, userCourses } from "@/components/ui/drizzle/schema";
+import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../../../components/page-header";
 import { AssignmentsList } from "./_components/assignments-list";
 import { AddAssignmentForm } from "./_components/add-assignment-form";
+import { auth } from "@/lib/auth";
 
 export default async function AssignmentsPage() {
-  const session = await getServerSession();
+  const session = await auth();
   
   if (!session?.user) {
     redirect("/auth/login");

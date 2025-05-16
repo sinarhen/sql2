@@ -13,7 +13,7 @@ export function Navbar() {
   const isAuthenticated = !!session;
 
   return (
-    <header className="border-b px-4 md:px-8 lg:px-20 fixed z-50 bg-white/10 backdrop-blur-sm w-full border-border/10">
+    <header className="border-b px-4 md:px-8 lg:px-20 fixed z-50 bg-white w-full border-border/10">
       <div className="container flex h-14 justify-between items-center">
         <div className="mr-4 flex">
           <Link href="/" className="font-medium flex items-center">

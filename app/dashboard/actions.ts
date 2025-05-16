@@ -10,7 +10,7 @@ import {
   userCourses,
   forms,
   formSubmissions
-} from "@/drizzle/schema";
+} from "@/components/ui/drizzle/schema";
 import { eq, sql, count, avg, max, min, desc, and } from "drizzle-orm";
 
 export type StudentStats = {
@@ -265,7 +265,44 @@ export async function getAllCourses(userId?: string) {
 }
 
 export async function getCourseById(id: string) {
-  return await db.select().from(courses).where(eq(courses.id, id));
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.id, id),
+  });
+  
+  return course;
+}
+
+export async function getCourseWithDetails(id: string) {
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.id, id),
+    with: {
+      assignments: {
+        orderBy: (assignments, { desc }) => [desc(assignments.deadline)],
+      }
+    }
+  });
+  
+  return course;
+}
+
+export async function getCourseEnrollments(courseId: string) {
+  const enrollments = await db.query.userCourses.findMany({
+    where: eq(userCourses.courseId, courseId),
+    with: {
+      user: true
+    }
+  });
+  
+  return enrollments;
+}
+
+export async function getCourseAssignments(courseId: string) {
+  const courseAssignments = await db.query.assignments.findMany({
+    where: eq(assignments.courseId, courseId),
+    orderBy: (assignments, { desc }) => [desc(assignments.createdAt)],
+  });
+  
+  return courseAssignments;
 }
 
 export async function enrollInCourse(courseId: string, userId: string) {
@@ -287,6 +324,7 @@ export async function enrollInCourse(courseId: string, userId: string) {
 
   revalidatePath("/dashboard/courses");
   revalidatePath("/dashboard/my-courses");
+  revalidatePath(`/dashboard/courses/${courseId}`);
   return { success: true };
 }
 
@@ -302,6 +340,7 @@ export async function unenrollFromCourse(courseId: string, userId: string) {
 
   revalidatePath("/dashboard/courses");
   revalidatePath("/dashboard/my-courses");
+  revalidatePath(`/dashboard/courses/${courseId}`);
   return { success: true };
 }
 
@@ -642,5 +681,23 @@ export async function processCsvImport(fileContent: string, type: 'students' | '
   } catch (error) {
     console.error("Error processing CSV import:", error);
     return { success: false, error: "Failed to process CSV data" };
+  }
+}
+
+export async function updateUserRole(userId: string, newRole: 'student' | 'lecturer' | 'admin') {
+  try {
+    if (!['student', 'lecturer', 'admin'].includes(newRole)) {
+      return { success: false, error: "Invalid role" };
+    }
+    
+    await db
+      .update(users)
+      .set({ role: newRole })
+      .where(eq(users.id, userId));
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    return { success: false, error: "Failed to update role" };
   }
 } 

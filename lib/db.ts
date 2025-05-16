@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
-import * as schema from '../drizzle/schema';
+import * as schema from '../components/ui/drizzle/schema';
 import { createSelectSchema, createInsertSchema } from 'drizzle-zod';
 
 const sqlite = new Database('./sqlite.db');

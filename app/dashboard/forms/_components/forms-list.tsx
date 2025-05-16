@@ -41,9 +41,9 @@ export function FormsList({ forms, userRole, userId }: FormsListProps) {
   };
   
   return (
-    <Card className=" border-slate-700/10">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">
+    <Card className="">
+      <CardHeader>
+        <CardTitle>
           {userRole === "lecturer" ? "Feedback Forms" : "Available Forms"}
         </CardTitle>
       </CardHeader>
@@ -78,7 +78,7 @@ export function FormsList({ forms, userRole, userId }: FormsListProps) {
                 </CardHeader>
                 <CardContent>
                   {userRole === "student" ? (
-                    <div className="space-y-3">
+                    <>
                       <Input
                         type="text"
                         placeholder="Your feedback"
@@ -87,7 +87,7 @@ export function FormsList({ forms, userRole, userId }: FormsListProps) {
                           ...prev, 
                           [form.id]: e.target.value 
                         }))}
-                        className="w-full"
+                        className="w-full mb-3"
                         disabled={submitting[form.id] || new Date(form.end) < new Date()}
                       />
                       <div className="flex justify-end">
@@ -105,7 +105,7 @@ export function FormsList({ forms, userRole, userId }: FormsListProps) {
                           Submit
                         </Button>
                       </div>
-                    </div>
+                    </>
                   ) : (
                     <div className="text-xs text-muted-foreground">
                       <p>View student submissions for this form.</p>

@@ -13,7 +13,7 @@ import {
   resources,
   embeddings
 } from "@/lib/db/drizzle/schema";
-import { eq, sql, count, avg, max, min, desc, and } from "drizzle-orm";
+import { eq, sql, count, avg, max, min, desc, and, inArray } from "drizzle-orm";
 import { generateEmbeddings } from "@/lib/ai/embedding";
 
 export type StudentStats = {
@@ -948,7 +948,7 @@ export async function getSubmissionDetails(submissionId: string) {
   const studentSubmissions = await db.query.assignmentSubmissions.findMany({
     where: and(
       eq(assignmentSubmissions.studentId, submission.studentId),
-      sql`${assignmentSubmissions.assignmentId} IN (${courseAssignmentIds.join(',')})`,
+      inArray(assignmentSubmissions.assignmentId, courseAssignmentIds),
       sql`${assignmentSubmissions.rating} IS NOT NULL`
     )
   });
@@ -964,7 +964,7 @@ export async function getSubmissionDetails(submissionId: string) {
     .where(
       and(
         eq(assignmentSubmissions.studentId, submission.studentId),
-        sql`${assignmentSubmissions.assignmentId} IN (${courseAssignmentIds.join(',')})`
+        inArray(assignmentSubmissions.assignmentId, courseAssignmentIds)
       )
     )
     .then(res => res[0].count);
@@ -1015,7 +1015,7 @@ export async function getStudentCourseProgress(studentId: string, courseId: stri
   const studentSubmissions = await db.query.assignmentSubmissions.findMany({
     where: and(
       eq(assignmentSubmissions.studentId, studentId),
-      sql`${assignmentSubmissions.assignmentId} IN (${courseAssignments.map(a => a.id).join(',')})`
+      inArray(assignmentSubmissions.assignmentId, courseAssignments.map(a => a.id))
     )
   });
   
@@ -1532,4 +1532,246 @@ export async function getAllResources() {
     .from(resources)
   
   return allResources;
+}
+
+// Get all courses info for RAG chatbot
+export async function getAllCoursesInfo() {
+  const allCourses = await db
+    .select({
+      id: courses.id,
+      name: courses.name,
+      lecturerName: users.name,
+      createdAt: courses.createdAt,
+    })
+    .from(courses)
+    .leftJoin(users, eq(users.id, courses.lecturerId));
+  
+  // Get enrollment counts for each course
+  const enrollmentCounts = await db
+    .select({
+      courseId: userCourses.courseId,
+      count: count(),
+    })
+    .from(userCourses)
+    .groupBy(userCourses.courseId);
+  
+  // Create a map of course IDs to enrollment counts
+  const enrollmentMap = new Map(
+    enrollmentCounts.map(item => [item.courseId, item.count])
+  );
+  
+  // Combine all data
+  return allCourses.map(course => ({
+    ...course,
+    enrollmentCount: enrollmentMap.get(course.id) || 0,
+  }));
+}
+
+// Get all lecturers on the platform
+export async function getLecturers() {
+  const lecturers = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+    })
+    .from(users)
+    .where(eq(users.role, "lecturer"));
+  
+  // For each lecturer, get the count of courses they teach
+  const lecturerIds = lecturers.map(lecturer => lecturer.id);
+  
+  const courseCounts = await db
+    .select({
+      lecturerId: courses.lecturerId,
+      count: count(),
+    })
+    .from(courses)
+    .where(inArray(courses.lecturerId, lecturerIds))
+    .groupBy(courses.lecturerId);
+  
+  // Create a map of lecturer IDs to course counts
+  const courseCountMap = new Map(
+    courseCounts.map(item => [item.lecturerId, item.count])
+  );
+  
+  // Combine all data
+  return lecturers.map(lecturer => ({
+    ...lecturer,
+    coursesCount: courseCountMap.get(lecturer.id) || 0,
+  }));
+}
+
+// Get average grades for a user across all courses
+export async function getAverageGrades(userId: string) {
+  // Get user info first
+  const user = await getUserInfo(userId);
+  
+  if (!user) {
+    return { error: "User not found" };
+  }
+  
+  // Get all submission grades for this user
+  const submissions = await db
+    .select({
+      assignmentId: assignmentSubmissions.assignmentId,
+      rating: assignmentSubmissions.rating,
+      assignmentName: assignments.name,
+      courseId: assignments.courseId,
+      courseName: courses.name,
+    })
+    .from(assignmentSubmissions)
+    .innerJoin(assignments, eq(assignmentSubmissions.assignmentId, assignments.id))
+    .innerJoin(courses, eq(assignments.courseId, courses.id))
+    .where(
+      and(
+        eq(assignmentSubmissions.studentId, userId),
+        sql`${assignmentSubmissions.rating} IS NOT NULL`
+      )
+    );
+  
+  if (submissions.length === 0) {
+    return {
+      user,
+      averageGrade: null,
+      courseGrades: [],
+      message: "No graded submissions found"
+    };
+  }
+  
+  // Calculate overall average
+  const overallAverage = submissions.reduce((sum, sub) => sum + (sub.rating || 0), 0) / submissions.length;
+  
+  // Group by course and calculate course averages
+  const courseGrades = [];
+  const courseMap = new Map();
+  
+  for (const submission of submissions) {
+    if (!courseMap.has(submission.courseId)) {
+      courseMap.set(submission.courseId, {
+        courseId: submission.courseId,
+        courseName: submission.courseName,
+        grades: [],
+      });
+    }
+    
+    courseMap.get(submission.courseId).grades.push(submission.rating || 0);
+  }
+  
+  // Calculate average for each course
+  for (const [_, courseData] of courseMap.entries()) {
+    const courseAverage = courseData.grades.reduce((sum, grade) => sum + grade, 0) / courseData.grades.length;
+    courseGrades.push({
+      courseId: courseData.courseId,
+      courseName: courseData.courseName,
+      averageGrade: courseAverage,
+      submissionCount: courseData.grades.length,
+    });
+  }
+  
+  return {
+    user,
+    averageGrade: overallAverage,
+    courseGrades,
+  };
+}
+
+// Get grades for a specific course
+export async function getCourseGrades(courseId: string) {
+  // Get course info first
+  const course = await getCourseById(courseId);
+  
+  if (!course) {
+    return { error: "Course not found" };
+  }
+  
+  // Get all submissions for this course
+  const submissions = await db
+    .select({
+      id: assignmentSubmissions.id,
+      studentId: assignmentSubmissions.studentId,
+      studentName: users.name,
+      assignmentId: assignmentSubmissions.assignmentId,
+      assignmentName: assignments.name,
+      rating: assignmentSubmissions.rating,
+      submission: assignmentSubmissions.submission,
+    })
+    .from(assignmentSubmissions)
+    .innerJoin(assignments, eq(assignmentSubmissions.assignmentId, assignments.id))
+    .innerJoin(users, eq(assignmentSubmissions.studentId, users.id))
+    .where(
+      and(
+        eq(assignments.courseId, courseId),
+        sql`${assignmentSubmissions.rating} IS NOT NULL`
+      )
+    );
+  
+  if (submissions.length === 0) {
+    return {
+      course,
+      averageGrade: null,
+      studentGrades: [],
+      message: "No graded submissions found for this course"
+    };
+  }
+  
+  // Calculate overall course average
+  const overallAverage = submissions.reduce((sum, sub) => sum + (sub.rating || 0), 0) / submissions.length;
+  
+  // Group by student and calculate student averages
+  const studentGrades = [];
+  const studentMap = new Map();
+  
+  for (const submission of submissions) {
+    if (!studentMap.has(submission.studentId)) {
+      studentMap.set(submission.studentId, {
+        studentId: submission.studentId,
+        studentName: submission.studentName,
+        grades: [],
+      });
+    }
+    
+    studentMap.get(submission.studentId).grades.push(submission.rating || 0);
+  }
+  
+  // Calculate average for each student
+  for (const [_, studentData] of studentMap.entries()) {
+    const studentAverage = studentData.grades.reduce((sum, grade) => sum + grade, 0) / studentData.grades.length;
+    studentGrades.push({
+      studentId: studentData.studentId,
+      studentName: studentData.studentName,
+      averageGrade: studentAverage,
+      submissionCount: studentData.grades.length,
+    });
+  }
+  
+  // Get distribution data
+  const ranges = [
+    { min: 0, max: 59, label: '0-59' },
+    { min: 60, max: 69, label: '60-69' },
+    { min: 70, max: 79, label: '70-79' },
+    { min: 80, max: 89, label: '80-89' },
+    { min: 90, max: 100, label: '90-100' }
+  ];
+  
+  const gradeDistribution = ranges.map(range => {
+    const count = submissions.filter(
+      sub => (sub.rating || 0) >= range.min && (sub.rating || 0) <= range.max
+    ).length;
+    
+    return {
+      range: range.label,
+      count,
+      percentage: (count / submissions.length) * 100
+    };
+  });
+  
+  return {
+    course,
+    averageGrade: overallAverage,
+    studentGrades,
+    gradeDistribution,
+    submissionCount: submissions.length,
+  };
 } 

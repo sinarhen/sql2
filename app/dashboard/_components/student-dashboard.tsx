@@ -123,38 +123,44 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
         </div>
         <Card>
           <CardContent className="p-4">
-            <div className="space-y-4">
-              {dashboardData.recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center gap-3 pb-3 border-b border-border/20 last:border-0 last:pb-0">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-[10px] text-primary">
-                      {activity.studentName.substring(0, 2).toUpperCase()}
-                    </span>
+            {dashboardData.recentActivities.length === 0 ? (
+              <div className="flex items-center justify-center py-6">
+                <p className="text-xs text-muted-foreground">No recent activity found</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {dashboardData.recentActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-center gap-3 pb-3 border-b border-border/20 last:border-0 last:pb-0">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-[10px] text-primary">
+                        {activity.studentName.substring(0, 2).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium">
+                        {activity.rating !== null 
+                          ? `Grade: ${activity.rating}%`
+                          : 'Assignment Submitted'
+                        }
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        <Link href={`/dashboard/courses/${activity.assignmentId}`} className="hover:underline">
+                          {activity.courseName}
+                        </Link> - {' '}
+                        <Link href={`/dashboard/assignments/${activity.assignmentId}`} className="hover:underline">
+                          {activity.assignmentName}
+                        </Link>
+                      </p>
+                    </div>
+                    <Link href={`/dashboard/assignments/${activity.assignmentId}/submissions/${activity.id}`}>
+                      <Button size="sm" variant="outline" className="text-[10px] h-7 rounded-xl">
+                        View Details
+                      </Button>
+                    </Link>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium">
-                      {activity.rating !== null 
-                        ? `Grade: ${activity.rating}%`
-                        : 'Assignment Submitted'
-                      }
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      <Link href={`/dashboard/courses/${activity.assignmentId}`} className="hover:underline">
-                        {activity.courseName}
-                      </Link> - {' '}
-                      <Link href={`/dashboard/assignments/${activity.assignmentId}`} className="hover:underline">
-                        {activity.assignmentName}
-                      </Link>
-                    </p>
-                  </div>
-                  <Link href={`/dashboard/assignments/${activity.assignmentId}/submissions/${activity.id}`}>
-                    <Button size="sm" variant="outline" className="text-[10px] h-7 rounded-xl">
-                      View Details
-                    </Button>
-                  </Link>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -168,38 +174,44 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
         </div>
         <Card>
           <CardContent className="p-4">
-            <div className="space-y-4">
-              {dashboardData.upcomingAssignments && dashboardData.upcomingAssignments.map((assignment) => (
-                <div key={assignment.id} className="flex items-center gap-3 pb-3 border-b border-border/20 last:border-0 last:pb-0">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-[10px] text-primary">AS</span>
+            {!dashboardData.upcomingAssignments || dashboardData.upcomingAssignments.length === 0 ? (
+              <div className="flex items-center justify-center py-6">
+                <p className="text-xs text-muted-foreground">No upcoming assignments</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {dashboardData.upcomingAssignments.map((assignment) => (
+                  <div key={assignment.id} className="flex items-center gap-3 pb-3 border-b border-border/20 last:border-0 last:pb-0">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-[10px] text-primary">AS</span>
+                    </div>
+                    <div className="flex-1">
+                      <Link href={`/dashboard/assignments/${assignment.id}`}>
+                        <p className="text-xs font-medium hover:underline">{assignment.name}</p>
+                      </Link>
+                      <Link href={`/dashboard/courses/${assignment.courseId}`}>
+                        <p className="text-[10px] text-muted-foreground hover:underline">{assignment.courseName}</p>
+                      </Link>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <Badge variant="outline" className="text-[10px] bg-transparent">
+                        Due: {new Date(assignment.deadline).toLocaleDateString()}
+                      </Badge>
+                      <Badge 
+                        variant={Boolean(assignment.isCompleted) ? "secondary" : "outline"} 
+                        className={`text-[10px] mt-1 px-2 py-0 rounded-xl ${
+                          Boolean(assignment.isCompleted) 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {Boolean(assignment.isCompleted) ? 'Completed' : 'Pending'}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <Link href={`/dashboard/assignments/${assignment.id}`}>
-                      <p className="text-xs font-medium hover:underline">{assignment.name}</p>
-                    </Link>
-                    <Link href={`/dashboard/courses/${assignment.courseId}`}>
-                      <p className="text-[10px] text-muted-foreground hover:underline">{assignment.courseName}</p>
-                    </Link>
-                  </div>
-                  <div className="text-right flex flex-col items-end">
-                    <Badge variant="outline" className="text-[10px] bg-transparent">
-                      Due: {new Date(assignment.deadline).toLocaleDateString()}
-                    </Badge>
-                    <Badge 
-                      variant={Boolean(assignment.isCompleted) ? "secondary" : "outline"} 
-                      className={`text-[10px] mt-1 px-2 py-0 rounded-xl ${
-                        Boolean(assignment.isCompleted) 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {Boolean(assignment.isCompleted) ? 'Completed' : 'Pending'}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -212,54 +224,72 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 motion-stagger-children">
-          {dashboardData.courses.map((course, idx) => (
-            <div key={course.id} className={`motion-preset-blur-${idx === 0 ? 'left' : idx === 1 ? 'up' : 'right'}-sm motion-duration-500 motion-delay-${(idx+1)*100}`}>
-              <Card className="overflow-hidden glass-card border-border/40 hover:shadow-md transition-all duration-300">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xs md:text-sm flex justify-between">
-                    <Link href={`/dashboard/courses/${course.id}`} className="hover:underline">
-                      <span className="text-primary">{course.title}</span>
-                    </Link>
-                    <Badge className="px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
-                      {course.completion}
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription className="text-[10px]">{course.students} students enrolled</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-2">
-                  <div className="space-y-2">
-                    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary rounded-full" 
-                        style={{ width: `${course.progress}%` }}
-                      ></div>
+        {dashboardData.courses.length === 0 ? (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-xs text-muted-foreground mb-3">You haven&apos;t enrolled in any courses yet</p>
+                <Link href="/dashboard/courses">
+                  <Button 
+                    size="sm" 
+                    className="rounded-xl text-[10px] px-3 py-1 h-7 bg-primary hover:bg-primary/90"
+                  >
+                    Browse Courses
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 motion-stagger-children">
+            {dashboardData.courses.map((course, idx) => (
+              <div key={course.id} className={`motion-preset-blur-${idx === 0 ? 'left' : idx === 1 ? 'up' : 'right'}-sm motion-duration-500 motion-delay-${(idx+1)*100}`}>
+                <Card className="overflow-hidden glass-card border-border/40 hover:shadow-md transition-all duration-300">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs md:text-sm flex justify-between">
+                      <Link href={`/dashboard/courses/${course.id}`} className="hover:underline">
+                        <span className="text-primary">{course.title}</span>
+                      </Link>
+                      <Badge className="px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
+                        {course.completion}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-[10px]">{course.students} students enrolled</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-2">
+                    <div className="space-y-2">
+                      <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary rounded-full" 
+                          style={{ width: `${course.progress}%` }}
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="pt-1 pb-3 flex justify-between">
-                  <Link href={`/dashboard/courses/${course.id}/syllabus`}>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="text-[10px] text-primary p-0 h-auto"
-                    >
-                      Syllabus
-                    </Button>
-                  </Link>
-                  <Link href={`/dashboard/courses/${course.id}/assignments`}>
-                    <Button 
-                      size="sm" 
-                      className="rounded-xl text-[10px] px-3 py-1 h-6 bg-primary hover:bg-primary/90"
-                    >
-                      Assignments
-                    </Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            </div>
-          ))}
-        </div>
+                  </CardContent>
+                  <CardFooter className="pt-1 pb-3 flex justify-between">
+                    <Link href={`/dashboard/courses/${course.id}/syllabus`}>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-[10px] text-primary p-0 h-auto"
+                      >
+                        Syllabus
+                      </Button>
+                    </Link>
+                    <Link href={`/dashboard/courses/${course.id}/assignments`}>
+                      <Button 
+                        size="sm" 
+                        className="rounded-xl text-[10px] px-3 py-1 h-6 bg-primary hover:bg-primary/90"
+                      >
+                        Assignments
+                      </Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

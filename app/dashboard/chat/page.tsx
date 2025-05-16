@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useChat } from "@ai-sdk/react";
-import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "@/components/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Bot, User, SendIcon, ArrowDownCircle } from "lucide-react";
+import { useChat } from "ai/react";
 import { Button } from "@/components/ui/button";
-import { SendIcon, Bot, User, ArrowDownCircle } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactMarkdown from "react-markdown";
 
 export default function RagChatbotPage() {
-  const [showTips, setShowTips] = useState(true);
+  const showTips = true;
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: "/api/chat",
     maxSteps: 3,
@@ -25,16 +25,9 @@ export default function RagChatbotPage() {
     ],
   });
 
-  // Handle example question click
   const handleExampleClick = (question: string) => {
     // Clear any previous input first
     handleInputChange({ target: { value: question } } as React.ChangeEvent<HTMLInputElement>);
-    
-    // Use setTimeout to allow the input to update before submitting
-    setTimeout(() => {
-      const form = document.querySelector('form');
-      if (form) form.dispatchEvent(new Event('submit', { cancelable: true }));
-    }, 100);
   };
 
   return (
@@ -48,32 +41,7 @@ export default function RagChatbotPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Main Chat Area */}
-        <Card className="rounded-xl border-border/20 md:col-span-3 glass-card flex flex-col h-[70vh]">
-          <CardHeader className="p-4 pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xs flex items-center gap-2">
-                <Bot size={16} className="text-primary" />
-                <span>AI Learning Assistant</span>
-                {isLoading && (
-                  <span className="animate-pulse text-[10px] text-muted-foreground">
-                    Thinking...
-                  </span>
-                )}
-              </CardTitle>
-              <Button 
-                size="sm" 
-                className="rounded-xl text-xs h-7" 
-                variant="outline"
-                onClick={() => setShowTips(!showTips)}
-              >
-                {showTips ? "Hide Tips" : "Show Tips"}
-              </Button>
-            </div>
-            <CardDescription className="text-[10px]">
-              Ask me about your courses, assignments, deadlines, or for help with learning concepts
-            </CardDescription>
-          </CardHeader>
-
+        <Card className="rounded-xl md:col-span-3 flex flex-col h-[70vh]">
           <ScrollArea className="flex-grow p-4 pt-2">
             {messages.length <= 1 && (
               <div className="h-full flex flex-col items-center justify-center text-center px-4 pb-10">
@@ -94,13 +62,15 @@ export default function RagChatbotPage() {
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="grid gap-1">
+                  <div className="grid gap-1 w-full">
                     <p className="text-xs font-medium">
                       {m.role === "user" ? "You" : "AI Assistant"}
                     </p>
                     <div className="rounded-xl bg-muted p-3 text-xs">
                       {m.content ? (
-                        m.content
+                        <div className="prose prose-sm max-w-none dark:prose-invert prose-p:text-xs prose-li:text-xs prose-headings:text-xs">
+                          <ReactMarkdown>{m.content}</ReactMarkdown>
+                        </div>
                       ) : (
                         <div className="flex gap-2 items-center text-[10px] text-muted-foreground italic">
                           <ArrowDownCircle size={12} />
@@ -141,7 +111,7 @@ export default function RagChatbotPage() {
         {/* Tips Panel */}
         {showTips && (
           <Card className="rounded-xl border-border/20 md:col-span-1 glass-card">
-            <CardHeader className="p-4 pb-2">
+            <CardHeader >
               <CardTitle className="text-xs flex items-center gap-2">
                 <Bot size={16} className="text-primary" />
                 <span>Example Questions</span>
@@ -153,7 +123,7 @@ export default function RagChatbotPage() {
             <CardContent className="px-4 pb-4 pt-0">
               <div className="space-y-2 flex flex-col ">
                 <button
-                  className="w-full justify-start flex-wrap whitespace-break-spaces  flex  text-left h-auto py-2 px-3 text-xs rounded-xl"
+                  className="w-full justify-start flex-wrap whitespace-break-spaces flex text-left h-auto py-2 px-3 text-xs rounded-xl"
                   onClick={() => handleExampleClick("What courses am I enrolled in?")}
                 >
                   <Badge className="rounded-xl bg-blue-600/20 text-blue-400 text-[10px] mr-2">Course</Badge>
@@ -169,11 +139,27 @@ export default function RagChatbotPage() {
                 </button>
                 
                 <button
-                  className="w-full justify-start  flex flex-wrap text-left h-auto py-2 px-3 text-xs rounded-xl"
+                  className="w-full justify-start flex flex-wrap text-left h-auto py-2 px-3 text-xs rounded-xl"
+                  onClick={() => handleExampleClick("How many courses are on the platform?")}
+                >
+                  <Badge className="rounded-xl bg-emerald-600/20 text-emerald-400 text-[10px] mr-2">Platform</Badge>
+                  How many courses are on the platform?
+                </button>
+                
+                <button
+                  className="w-full justify-start flex flex-wrap text-left h-auto py-2 px-3 text-xs rounded-xl"
                   onClick={() => handleExampleClick("What's my average grade across all courses?")}
                 >
                   <Badge className="rounded-xl bg-cyan-600/20 text-cyan-400 text-[10px] mr-2">Analytics</Badge>
                   What&apos;s my average grade across all courses?
+                </button>
+                
+                <button
+                  className="w-full justify-start flex flex-wrap text-left h-auto py-2 px-3 text-xs rounded-xl"
+                  onClick={() => handleExampleClick("List all the lecturers on the platform.")}
+                >
+                  <Badge className="rounded-xl bg-amber-600/20 text-amber-400 text-[10px] mr-2">Users</Badge>
+                  List all the lecturers on the platform.
                 </button>
                 
                 <button

@@ -11,32 +11,31 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ContainerTextFlip } from '@/components/ui/container-text-flip';
 import { WobbleCard } from '@/components/ui/wobble-card';
-import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 export default function Home() {
   // Text items for the flip component
-  const flipItems: ReactNode[] = [
-    <span key="1" className="text-primary font-semibold">Data-Driven Learning Analytics</span>,
-    <span key="2" className="text-primary font-semibold">AI-Powered Student Insights</span>,
-    <span key="3" className="text-primary font-semibold">Intelligent Performance Tracking</span>
+  const flipItems: string[] = [
+    "Data-Driven Learning Analytics",
+    "AI-Powered Student Insights",
+    "Intelligent Performance Tracking"
   ];
 
   return (
     <div className='p-12'>
       <div className="container mx-auto px-4 py-12 md:py-20">
         <div 
-          className="text-center mb-20 max-w-3xl mx-auto motion-preset-blur-up-md motion-duration-600"
+          className="text-center mb-20 max-w-3xl h-[50vh] flex flex-col justify-center items-center mx-auto motion-preset-blur-up-md motion-duration-600"
         >
           <h1 
-            className="text-2xl md:text-3xl font-medium mb-3 tracking-tight motion-translate-y-in-20 motion-opacity-in-0 motion-duration-500"
+            className="text-3xl md:text-3xl font-medium  tracking-tight motion-translate-y-in-20 motion-opacity-in-0 motion-duration-500"
           >
             Enhance your educational insights with
           </h1>
           
           <ContainerTextFlip 
             items={flipItems}
-            className="my-5"
+            className="mb-5 mt-1 w-[500px]"
           />
           
           <p 
@@ -202,7 +201,7 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-primary/10 py-16 my-8">
+      <div className="bg-primary/10 rounded-md px-16 py-16 my-8">
         <div className="container mx-auto px-4 text-center max-w-3xl">
           <div
             className="intersect:motion-preset-blur-up-md intersect:motion-duration-800 intersect-once"

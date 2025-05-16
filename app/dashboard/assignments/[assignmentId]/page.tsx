@@ -227,6 +227,17 @@ export default async function AssignmentDetailsPage({ params }: { params: { assi
                       <div className="text-[10px] bg-background/50 p-2 rounded-md">
                         {studentSubmission.content || "No content submitted."}
                       </div>
+                      <div className="mt-3 flex justify-end">
+                        <Link href={`/dashboard/assignments/submissions/${studentSubmission.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-[10px] rounded-xl"
+                          >
+                            View Full Details
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -297,13 +308,13 @@ export default async function AssignmentDetailsPage({ params }: { params: { assi
                                 Not Graded
                               </Badge>
                             )}
-                            <Link href={`/dashboard/assignments/${params.assignmentId}/grade/${submission.student.id}`}>
+                            <Link href={`/dashboard/assignments/submissions/${submission.id}`}>
                               <Button 
                                 size="sm" 
                                 variant="outline" 
                                 className="rounded-xl text-[10px] h-6"
                               >
-                                {submission.rating !== null ? "Update Grade" : "Grade"}
+                                View Submission
                               </Button>
                             </Link>
                           </div>

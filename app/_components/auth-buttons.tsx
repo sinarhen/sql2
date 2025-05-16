@@ -47,6 +47,8 @@ export function AuthButtons() {
           role: newRole
         }
       });
+
+      console.log(newRole)
       
       // Wait a moment to ensure session update is processed
       // setTimeout(() => {

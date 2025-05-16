@@ -837,4 +837,120 @@ export async function getCourseStats(courseId: string) {
     enrollmentsCount,
     submissionStats
   };
+}
+
+// Get assignments for all courses a student is enrolled in
+export async function getStudentAssignments(studentId: string) {
+  // Get courses the student is enrolled in
+  const enrollments = await db.query.userCourses.findMany({
+    where: eq(userCourses.userId, studentId),
+    with: {
+      course: {
+        with: {
+          assignments: {
+            orderBy: (assignments, { desc }) => [desc(assignments.deadline)],
+          }
+        }
+      }
+    }
+  });
+
+  // Extract all assignments with their course info
+  const assignmentsWithCourses = [];
+  for (const enrollment of enrollments) {
+    const courseAssignments = enrollment.course.assignments.map(assignment => ({
+      ...assignment,
+      courseName: enrollment.course.name
+    }));
+    assignmentsWithCourses.push(...courseAssignments);
+  }
+
+  // Get student's submissions to determine completion status
+  const studentSubmissions = await db.query.assignmentSubmissions.findMany({
+    where: eq(assignmentSubmissions.studentId, studentId)
+  });
+
+  const submissionMap = new Map(
+    studentSubmissions.map(sub => [sub.assignmentId, sub])
+  );
+
+  // Add completion status to each assignment
+  const assignmentsWithStatus = assignmentsWithCourses.map(assignment => ({
+    ...assignment,
+    isCompleted: submissionMap.has(assignment.id),
+    submission: submissionMap.get(assignment.id) || null
+  }));
+
+  return assignmentsWithStatus;
+}
+
+// Get detailed submission information
+export async function getSubmissionDetails(submissionId: string) {
+  const submission = await db.query.assignmentSubmissions.findFirst({
+    where: eq(assignmentSubmissions.id, submissionId),
+    with: {
+      student: true,
+      assignment: {
+        with: {
+          course: true
+        }
+      }
+    }
+  });
+  
+  if (!submission) return null;
+  
+  // Get student's average grade for this course
+  const courseAssignments = await db.query.assignments.findMany({
+    where: eq(assignments.courseId, submission.assignment.courseId)
+  });
+  
+  const courseAssignmentIds = courseAssignments.map(a => a.id);
+  
+  const studentSubmissions = await db.query.assignmentSubmissions.findMany({
+    where: and(
+      eq(assignmentSubmissions.studentId, submission.studentId),
+      sql`${assignmentSubmissions.assignmentId} IN (${courseAssignmentIds.join(',')})`,
+      sql`${assignmentSubmissions.rating} IS NOT NULL`
+    )
+  });
+  
+  const averageGrade = studentSubmissions.length > 0
+    ? studentSubmissions.reduce((sum, sub) => sum + (sub.rating || 0), 0) / studentSubmissions.length
+    : null;
+  
+  // Get student's submission count for this course
+  const submissionCount = await db
+    .select({ count: count() })
+    .from(assignmentSubmissions)
+    .where(
+      and(
+        eq(assignmentSubmissions.studentId, submission.studentId),
+        sql`${assignmentSubmissions.assignmentId} IN (${courseAssignmentIds.join(',')})`
+      )
+    )
+    .then(res => res[0].count);
+  
+  // Get course total assignment count
+  const totalAssignments = courseAssignments.length;
+  
+  return {
+    submission,
+    averageGrade,
+    submissionCount,
+    totalAssignments,
+    completionRate: totalAssignments > 0 ? (submissionCount / totalAssignments) * 100 : 0
+  };
+}
+
+// Get all submissions for an assignment
+export async function getAssignmentSubmissions(assignmentId: string) {
+  const submissions = await db.query.assignmentSubmissions.findMany({
+    where: eq(assignmentSubmissions.assignmentId, assignmentId),
+    with: {
+      student: true
+    }
+  });
+  
+  return submissions;
 } 

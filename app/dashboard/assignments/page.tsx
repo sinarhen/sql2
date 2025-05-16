@@ -1,11 +1,14 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { assignments, courses, users, userCourses } from "@/lib/db/drizzle/schema";
-import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "../../../components/page-header";
+import { assignments, users } from "@/lib/db/drizzle/schema";
+import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "@/components/page-header";
 import { AssignmentsList } from "./_components/assignments-list";
-import { AddAssignmentForm } from "./_components/add-assignment-form";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
 import { auth } from "@/lib/auth";
+import { getLecturerCourses, getStudentAssignments } from "../actions";
 
 export default async function AssignmentsPage() {
   const session = await auth();
@@ -22,42 +25,68 @@ export default async function AssignmentsPage() {
     redirect("/auth/login");
   }
   
-  // Get user courses
-  const userCoursesList = await db.query.userCourses.findMany({
-    where: eq(userCourses.userId, userResult.id),
-  });
+  let userAssignments = [];
+  let courses = [];
   
-  const courseIds = userCoursesList.map(uc => uc.courseId);
-  
-  // Get courses details
-  const coursesData = courseIds.length > 0
-    ? await db.query.courses.findMany({
-        where: eq(courses.id, courseIds[0]),
-      })
-    : [];
-  
-  // Get assignments for these courses
-  const userAssignments = courseIds.length > 0
-    ? await db.query.assignments.findMany({
-        where: eq(assignments.courseId, courseIds[0]),
+  if (userResult.role === "student") {
+    // Get assignments from all courses the student is enrolled in
+    userAssignments = await getStudentAssignments(userResult.id);
+    
+    // Extract unique courses from assignments
+    const uniqueCourses = new Map();
+    userAssignments.forEach(assignment => {
+      if (!uniqueCourses.has(assignment.courseId)) {
+        uniqueCourses.set(assignment.courseId, {
+          id: assignment.courseId,
+          name: assignment.courseName
+        });
+      }
+    });
+    courses = Array.from(uniqueCourses.values());
+  } else {
+    // For lecturers, get courses they created
+    courses = await getLecturerCourses(userResult.id);
+    
+    // Get assignments from these courses
+    for (const course of courses) {
+      const courseAssignments = await db.query.assignments.findMany({
+        where: eq(assignments.courseId, course.id),
         orderBy: assignments.deadline,
-      })
-    : [];
+      });
+      
+      // Add course name to each assignment
+      const assignmentsWithCourse = courseAssignments.map(assignment => ({
+        ...assignment,
+        courseName: course.name
+      }));
+      
+      userAssignments.push(...assignmentsWithCourse);
+    }
+  }
   
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader>
-        <PageHeaderTitle>Assignments</PageHeaderTitle>
-        <PageHeaderDescription>{userResult.role === "lecturer" ? "Manage and track student assignments" : "Your Assignments"}</PageHeaderDescription>
-      </PageHeader>
-      
-      {userResult.role === "lecturer" && (
-        <AddAssignmentForm courses={coursesData} />
-      )}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <PageHeader className="mb-0">
+          <PageHeaderTitle>Assignments</PageHeaderTitle>
+          <PageHeaderDescription>
+            {userResult.role === "lecturer" ? "Manage and track student assignments" : "Your Assignments"}
+          </PageHeaderDescription>
+        </PageHeader>
+        
+        {(userResult.role === "lecturer" || userResult.role === "admin") && (
+          <Link href="/dashboard/assignments/create">
+            <Button size="sm" className="rounded-xl text-xs gap-1">
+              <PlusIcon size={14} />
+              Create Assignment
+            </Button>
+          </Link>
+        )}
+      </div>
       
       <AssignmentsList 
         assignments={userAssignments} 
-        courses={coursesData}
+        courses={courses}
         userRole={userResult.role}
         userId={userResult.id}
       />

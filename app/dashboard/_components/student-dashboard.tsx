@@ -3,7 +3,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageHeader, PageHeaderTitle } from '@/components/page-header';
-import { getStudentDashboardData } from '../actions';
+import { getPerformanceTrends, getStudentDashboardData, getStudentWeeklyMetrics, getGradeDistribution } from '../actions';
+
+import { StudentGradeChart } from './charts/student-grade-chart';
+import { StudentSubmissionChart } from './charts/student-submission-chart';
+import { StudentGradeDistributionChart } from './charts/student-grade-distribution-chart';
+import { StudentCoursePerformanceChart } from './charts/student-course-performance-chart';
 
 interface StudentDashboardProps {
   userId: string;
@@ -11,7 +16,12 @@ interface StudentDashboardProps {
 
 export async function StudentDashboard({ userId }: StudentDashboardProps) {
   // Fetch dashboard data
-  const dashboardData = await getStudentDashboardData(userId);
+  const [dashboardData, performanceTrends, weeklyMetrics, gradeDistribution] = await Promise.all([
+    getStudentDashboardData(userId),
+    getPerformanceTrends(),
+    getStudentWeeklyMetrics(userId),
+    getGradeDistribution()
+  ]);
   
   return (
     <div>
@@ -34,7 +44,7 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
                 <CardTitle className="text-xs md:text-sm tracking-tight flex items-center">
                   <span className="text-primary">Your Performance</span>
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
-                    {dashboardData.performance.improvement}
+                    {weeklyMetrics.gradeChange}
                   </Badge>
                 </CardTitle>
                 <CardDescription className="text-[10px]">Weekly improvement across all courses</CardDescription>
@@ -62,7 +72,7 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
                 <CardTitle className="text-xs md:text-sm tracking-tight flex items-center text-primary">
                   Course Completion
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
-                    {dashboardData.completion.value}
+                    {weeklyMetrics.submissionsChange}
                   </Badge>
                 </CardTitle>
                 <CardDescription className="text-[10px]">Your progress on course requirements</CardDescription>
@@ -111,6 +121,23 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
               </CardContent>
             </Card>
           </div>
+        </div>
+      </div>
+      
+      {/* Charts Section */}
+      <div className="mb-10 motion-preset-blur-up-sm motion-duration-600 motion-delay-300">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Average Grades Chart */}
+          <StudentGradeChart performanceTrends={performanceTrends} />
+
+          {/* Assignments Submissions Chart */}
+          <StudentSubmissionChart performanceTrends={performanceTrends} />
+
+          {/* Grade Distribution Chart */}
+          <StudentGradeDistributionChart gradeDistribution={gradeDistribution} />
+
+          {/* Course involvement chart */}
+          <StudentCoursePerformanceChart courses={dashboardData.courses} />
         </div>
       </div>
       

@@ -206,6 +206,8 @@ export async function getPerformanceTrends() {
   const trends = [];
 
   for (let i = 0; i < months; i++) {
+    const previousMonth = i + 1;
+    const currentMonth = i;
     const monthData = await db
       .select({
         avgScore: avg(assignmentSubmissions.rating),
@@ -213,7 +215,7 @@ export async function getPerformanceTrends() {
       })
       .from(assignmentSubmissions)
       .where(
-        sql`${assignmentSubmissions.submission} BETWEEN NOW() - INTERVAL '${i+1} month' AND NOW() - INTERVAL '${i} month'`
+        sql`${assignmentSubmissions.submission} BETWEEN DATE_TRUNC('day', NOW() - INTERVAL '1 month' * ${previousMonth}) AND DATE_TRUNC('day', NOW() - INTERVAL '1 month' * ${currentMonth})`
       );
 
     const date = new Date();
@@ -1769,5 +1771,119 @@ export async function getCourseGrades(courseId: string) {
     studentGrades,
     gradeDistribution,
     submissionCount: submissions.length,
+  };
+}
+
+// Calculate weekly change metrics for student dashboard
+export async function getStudentWeeklyMetrics(userId: string) {
+  // Get current week stats
+  const currentWeekStats = await db
+    .select({
+      submissions: count(),
+      avgGrade: avg(assignmentSubmissions.rating)
+    })
+    .from(assignmentSubmissions)
+    .where(
+      and(
+        eq(assignmentSubmissions.studentId, userId),
+        sql`${assignmentSubmissions.submission} > NOW() - INTERVAL '1 week'`
+      )
+    );
+  
+  // Get previous week stats
+  const previousWeekStats = await db
+    .select({
+      submissions: count(),
+      avgGrade: avg(assignmentSubmissions.rating)
+    })
+    .from(assignmentSubmissions)
+    .where(
+      and(
+        eq(assignmentSubmissions.studentId, userId),
+        sql`${assignmentSubmissions.submission} BETWEEN NOW() - INTERVAL '2 week' AND NOW() - INTERVAL '1 week'`
+      )
+    );
+  
+  // Calculate changes
+  const submissionsChange = previousWeekStats[0].submissions > 0
+    ? ((currentWeekStats[0].submissions - previousWeekStats[0].submissions) / previousWeekStats[0].submissions) * 100
+    : currentWeekStats[0].submissions > 0 ? 100 : 0;
+  
+  const gradeChange = previousWeekStats[0].avgGrade
+    ? ((Number(currentWeekStats[0].avgGrade || 0) - Number(previousWeekStats[0].avgGrade || 0)) / Number(previousWeekStats[0].avgGrade || 1)) * 100
+    : 0;
+  
+  return {
+    submissionsChange: submissionsChange ? `${submissionsChange > 0 ? '+' : ''}${submissionsChange.toFixed(1)}%` : '+0%',
+    gradeChange: gradeChange ? `${gradeChange > 0 ? '+' : ''}${gradeChange.toFixed(1)}%` : '+0%',
+    currentWeekSubmissions: currentWeekStats[0].submissions,
+    previousWeekSubmissions: previousWeekStats[0].submissions,
+    currentWeekGrade: currentWeekStats[0].avgGrade ? Number(currentWeekStats[0].avgGrade) : 0,
+    previousWeekGrade: previousWeekStats[0].avgGrade ? Number(previousWeekStats[0].avgGrade) : 0
+  };
+}
+
+// Calculate weekly change metrics for lecturer dashboard
+export async function getLecturerWeeklyMetrics(userId: string) {
+  // Get current week stats for lecturer's courses
+  const currentWeekStats = await db
+    .select({
+      submissions: count(),
+      avgGrade: avg(assignmentSubmissions.rating),
+      studentsCount: sql`COUNT(DISTINCT ${assignmentSubmissions.studentId})`
+    })
+    .from(assignmentSubmissions)
+    .innerJoin(assignments, eq(assignmentSubmissions.assignmentId, assignments.id))
+    .innerJoin(courses, eq(assignments.courseId, courses.id))
+    .where(
+      and(
+        eq(courses.lecturerId, userId),
+        sql`${assignmentSubmissions.submission} > NOW() - INTERVAL '1 week'`
+      )
+    );
+  
+  // Get previous week stats
+  const previousWeekStats = await db
+    .select({
+      submissions: count(),
+      avgGrade: avg(assignmentSubmissions.rating),
+      studentsCount: sql`COUNT(DISTINCT ${assignmentSubmissions.studentId})`
+    })
+    .from(assignmentSubmissions)
+    .innerJoin(assignments, eq(assignmentSubmissions.assignmentId, assignments.id))
+    .innerJoin(courses, eq(assignments.courseId, courses.id))
+    .where(
+      and(
+        eq(courses.lecturerId, userId),
+        sql`${assignmentSubmissions.submission} BETWEEN NOW() - INTERVAL '2 week' AND NOW() - INTERVAL '1 week'`
+      )
+    );
+  
+  // Calculate changes
+  const submissionsChange = previousWeekStats[0].submissions > 0
+    ? ((currentWeekStats[0].submissions - previousWeekStats[0].submissions) / previousWeekStats[0].submissions) * 100
+    : currentWeekStats[0].submissions > 0 ? 100 : 0;
+  
+  const gradeChange = previousWeekStats[0].avgGrade
+    ? ((Number(currentWeekStats[0].avgGrade || 0) - Number(previousWeekStats[0].avgGrade || 0)) / Number(previousWeekStats[0].avgGrade || 1)) * 100
+    : 0;
+  
+  const currentStudentsCount = Number(currentWeekStats[0].studentsCount || 0);
+  const previousStudentsCount = Number(previousWeekStats[0].studentsCount || 0);
+  
+  const studentsChange = previousStudentsCount > 0
+    ? ((currentStudentsCount - previousStudentsCount) / previousStudentsCount) * 100
+    : currentStudentsCount > 0 ? 100 : 0;
+  
+  return {
+    submissionsChange: submissionsChange ? `${submissionsChange > 0 ? '+' : ''}${submissionsChange.toFixed(1)}%` : '+0%',
+    gradeChange: gradeChange ? `${gradeChange > 0 ? '+' : ''}${gradeChange.toFixed(1)}%` : '+0%',
+    studentsChange: studentsChange ? `${studentsChange > 0 ? '+' : ''}${studentsChange.toFixed(1)}%` : '+0%',
+    currentWeekSubmissions: currentWeekStats[0].submissions,
+    previousWeekSubmissions: previousWeekStats[0].submissions,
+    currentWeekGrade: currentWeekStats[0].avgGrade ? Number(currentWeekStats[0].avgGrade) : 0,
+    previousWeekGrade: previousWeekStats[0].avgGrade ? Number(previousWeekStats[0].avgGrade) : 0,
+    currentWeekStudents: currentStudentsCount,
+    previousWeekStudents: previousStudentsCount
   };
 } 

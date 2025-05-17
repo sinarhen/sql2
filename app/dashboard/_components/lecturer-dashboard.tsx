@@ -3,7 +3,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageHeader, PageHeaderTitle } from '@/components/page-header';
-import { getLecturerDashboardData } from '../actions';
+import { getLecturerDashboardData, getPerformanceTrends, getCoursePerformance, getAssignmentCompletionData, getLecturerWeeklyMetrics } from '../actions';
+
+import { LecturerGradeTrendChart } from './charts/lecturer-grade-trend-chart'; 
+import { LecturerCourseDistributionChart } from './charts/lecturer-course-distribution-chart';
+import { LecturerCoursePerformanceChart } from './charts/lecturer-course-performance-chart';
+import { LecturerAssignmentCompletionChart } from './charts/lecturer-assignment-completion-chart';
 
 interface LecturerDashboardProps {
   userId: string;
@@ -11,7 +16,20 @@ interface LecturerDashboardProps {
 
 export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
   // Fetch dashboard data
-  const dashboardData = await getLecturerDashboardData(userId);
+  const [dashboardData, performanceTrends, coursePerformance, assignmentCompletion, weeklyMetrics] = await Promise.all([
+    getLecturerDashboardData(userId),
+    getPerformanceTrends(),
+    getCoursePerformance(),
+    getAssignmentCompletionData(),
+    getLecturerWeeklyMetrics(userId)
+  ]);
+  
+  // Prepare course distribution data for pie chart
+  const courseDistributionData = dashboardData.courses.map(course => ({
+    name: course.title,
+    value: course.students,
+    color: `hsl(var(--chart-${dashboardData.courses.indexOf(course) + 1}))`
+  }));
   
   return (
     <div>
@@ -34,7 +52,7 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
                 <CardTitle className="text-xs md:text-sm tracking-tight flex items-center">
                   <span className="text-primary">Student Performance</span>
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
-                    {dashboardData.performance.improvement}
+                    {weeklyMetrics.gradeChange}
                   </Badge>
                 </CardTitle>
                 <CardDescription className="text-[10px]">Average grade across your courses</CardDescription>
@@ -62,7 +80,7 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
                 <CardTitle className="text-xs md:text-sm tracking-tight flex items-center text-primary">
                   Assignment Completion
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
-                    {dashboardData.completion.value}
+                    {weeklyMetrics.submissionsChange}
                   </Badge>
                 </CardTitle>
                 <CardDescription className="text-[10px]">Assignments submitted by students</CardDescription>
@@ -90,7 +108,7 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
                 <CardTitle className="text-xs md:text-sm tracking-tight flex items-center">
                   <span className="text-primary">Recent Activity</span>
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
-                    +{dashboardData.engagement.activeStudents}
+                    {weeklyMetrics.studentsChange}
                   </Badge>
                 </CardTitle>
                 <CardDescription className="text-[10px]">New submissions this week</CardDescription>
@@ -111,6 +129,23 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
               </CardContent>
             </Card>
           </div>
+        </div>
+      </div>
+      
+      {/* Charts Section */}
+      <div className="mb-10 motion-preset-blur-up-sm motion-duration-600 motion-delay-300">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Students' Average Grade Chart */}
+          <LecturerGradeTrendChart performanceTrends={performanceTrends} />
+
+          {/* Course Student Distribution Chart */}
+          <LecturerCourseDistributionChart courseDistributionData={courseDistributionData} />
+          
+          {/* Course Performance Chart */}
+          <LecturerCoursePerformanceChart coursePerformance={coursePerformance} />
+          
+          {/* Assignment Completion Chart */}
+          <LecturerAssignmentCompletionChart assignmentCompletion={assignmentCompletion} />
         </div>
       </div>
       

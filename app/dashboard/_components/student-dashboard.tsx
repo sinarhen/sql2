@@ -50,7 +50,7 @@ export async function StudentDashboard({ userId }: StudentDashboardProps) {
                 <CardDescription>Weekly improvement across all courses</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                <div className="space-y-2">x
+                <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span>Average Grade</span>
                     <span className="font-medium text-primary">{dashboardData.performance.value}%</span>

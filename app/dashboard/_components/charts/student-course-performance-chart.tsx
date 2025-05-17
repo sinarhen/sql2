@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 interface CoursePerformanceProps {
@@ -19,7 +19,7 @@ export function StudentCoursePerformanceChart({ courses }: CoursePerformanceProp
   const gradeChartConfig = {
     grade: {
       label: "Average Grade",
-      color: "hsl(var(--chart-1))"
+      color: "hsl(var(--primary))"
     }
   };
 
@@ -29,29 +29,38 @@ export function StudentCoursePerformanceChart({ courses }: CoursePerformanceProp
   }));
 
   return (
-    <Card>
+    <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-medium">Course Performance</CardTitle>
-        <CardDescription className="text-[10px]">Your grades by course</CardDescription>
+        <CardTitle>
+          <span className="text-primary">Course Performance</span>
+        </CardTitle>
+        <CardDescription>Your grades by course</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={gradeChartConfig} className="min-h-[200px] w-full">
-          <BarChart accessibilityLayer data={chartData}>
-            <CartesianGrid vertical={false} />
-            <XAxis 
-              dataKey="name" 
-              tickLine={false} 
-              tickMargin={10} 
-              axisLine={false}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar 
-              dataKey="grade" 
-              fill="var(--color-grade)" 
-              name="grade"
-              radius={4} 
-            />
-          </BarChart>
+        <ChartContainer config={gradeChartConfig} className="h-[200px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+              <XAxis 
+                dataKey="name" 
+                tickLine={false} 
+                tickMargin={8}
+                tick={{ fontSize: 10 }}
+                axisLine={{ stroke: 'var(--border)' }}
+              />
+              <ChartTooltip 
+                content={<ChartTooltipContent />} 
+                cursor={{ fill: 'hsl(var(--primary)/10)' }}
+              />
+              <Bar 
+                dataKey="grade" 
+                name="grade"
+                fill="hsl(var(--primary))" 
+                radius={[4, 4, 0, 0]} 
+                isAnimationActive={true}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
     </Card>

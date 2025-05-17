@@ -22,8 +22,10 @@ export function StudentGradeDistributionChart({ gradeDistribution }: GradeDistri
   return (
     <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-medium">Grade Distribution</CardTitle>
-        <CardDescription className="text-[10px]">Distribution of grades across all courses</CardDescription>
+        <CardTitle>
+          <span className="text-primary">Grade Distribution</span>
+        </CardTitle>
+        <CardDescription>Distribution of grades across all courses</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={gradeChartConfig} className="h-[200px] w-full">

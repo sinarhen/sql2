@@ -31,8 +31,10 @@ export function LecturerCourseDistributionChart({ courseDistributionData }: Cour
   return (
     <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-medium">Course Enrollment Distribution</CardTitle>
-        <CardDescription className="text-[10px]">Number of students per course</CardDescription>
+        <CardTitle>
+          <span className="text-primary">Course Enrollment Distribution</span>
+        </CardTitle>
+        <CardDescription>Number of students per course</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={studentChartConfig} className="h-[200px] w-full">

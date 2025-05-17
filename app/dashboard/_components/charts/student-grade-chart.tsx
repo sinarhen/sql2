@@ -29,8 +29,10 @@ export function StudentGradeChart({ performanceTrends }: StudentGradeChartProps)
   return (
     <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-medium">Average Grade Timeline</CardTitle>
-        <CardDescription className="text-[10px]">Your average grade over time</CardDescription>
+        <CardTitle>
+          <span className="text-primary">Average Grade Timeline</span>
+        </CardTitle>
+        <CardDescription>Your average grade over time</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={gradeChartConfig} className="h-[200px] w-full">

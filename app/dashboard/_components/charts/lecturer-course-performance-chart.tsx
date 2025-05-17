@@ -31,8 +31,10 @@ export function LecturerCoursePerformanceChart({ coursePerformance }: CoursePerf
   return (
     <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-medium">Course Performance</CardTitle>
-        <CardDescription className="text-[10px]">Average grade by course</CardDescription>
+        <CardTitle>
+          <span className="text-primary">Course Performance</span>
+        </CardTitle>
+        <CardDescription>Average grade by course</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={gradeChartConfig} className="h-[200px] w-full">

@@ -29,8 +29,10 @@ export function LecturerGradeTrendChart({ performanceTrends }: LecturerGradeTren
   return (
     <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-medium">Student Performance Trends</CardTitle>
-        <CardDescription className="text-[10px]">Average grade over time across all courses</CardDescription>
+        <CardTitle>
+          <span className="text-primary">Student Performance Trends</span>
+        </CardTitle>
+        <CardDescription>Average grade over time across all courses</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={gradeChartConfig} className="h-[200px] w-full">

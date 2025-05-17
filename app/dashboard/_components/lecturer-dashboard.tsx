@@ -49,13 +49,13 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
           <div className="motion-preset-blur-left-sm motion-duration-500 motion-delay-100">
             <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
               <CardHeader className="pb-2 ">
-                <CardTitle className="text-xs md:text-sm tracking-tight flex items-center">
+                <CardTitle>
                   <span className="text-primary">Student Performance</span>
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
                     {weeklyMetrics.gradeChange}
                   </Badge>
                 </CardTitle>
-                <CardDescription className="text-[10px]">Average grade across your courses</CardDescription>
+                <CardDescription>Average grade across your courses</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
                 <div className="space-y-2">
@@ -77,13 +77,13 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
           <div className="motion-preset-blur-up-sm motion-duration-500 motion-delay-200">
             <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs md:text-sm tracking-tight flex items-center text-primary">
-                  Assignment Completion
+                <CardTitle>
+                  <span className="text-primary">Assignment Completion</span>
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
                     {weeklyMetrics.submissionsChange}
                   </Badge>
                 </CardTitle>
-                <CardDescription className="text-[10px]">Assignments submitted by students</CardDescription>
+                <CardDescription>Assignments submitted by students</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
                 <div className="space-y-2">
@@ -105,13 +105,13 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
           <div className="motion-preset-blur-right-sm motion-duration-500 motion-delay-300">
             <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs md:text-sm tracking-tight flex items-center">
+                <CardTitle>
                   <span className="text-primary">Recent Activity</span>
                   <Badge className="ml-2 px-2 py-0 text-[10px] rounded-xl bg-primary/20 text-primary">
                     {weeklyMetrics.studentsChange}
                   </Badge>
                 </CardTitle>
-                <CardDescription className="text-[10px]">New submissions this week</CardDescription>
+                <CardDescription>New submissions this week</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
                 <div className="space-y-2">
@@ -250,7 +250,7 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
             <div key={course.id} className={`motion-preset-blur-${idx === 0 ? 'left' : idx === 1 ? 'up' : 'right'}-sm motion-duration-500 motion-delay-${(idx+1)*100}`}>
               <Card className="overflow-hidden glass-card border-border/40 hover:shadow-md transition-all duration-300">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xs md:text-sm flex justify-between">
+                  <CardTitle>
                     <Link href={`/dashboard/courses/${course.id}`} className="hover:underline">
                       <span className="text-primary">{course.title}</span>
                     </Link>
@@ -258,7 +258,7 @@ export async function LecturerDashboard({ userId }: LecturerDashboardProps) {
                       {course.completion}
                     </Badge>
                   </CardTitle>
-                  <CardDescription className="text-[10px]">{course.students} students enrolled</CardDescription>
+                  <CardDescription>{course.students} students enrolled</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-2">
                   <div className="space-y-2">

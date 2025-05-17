@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 interface StudentSubmissionChartProps {
@@ -16,34 +16,49 @@ export function StudentSubmissionChart({ performanceTrends }: StudentSubmissionC
   const submissionChartConfig = {
     submissions: {
       label: "Submissions",
-      color: "hsl(var(--chart-2))"
+      color: "hsl(var(--primary))"
     }
   };
 
+  // Format data to ensure numeric values
+  const formattedData = performanceTrends.map(item => ({
+    ...item,
+    submissions: Number(item.submissions)
+  }));
+
   return (
-    <Card>
+    <Card className="overflow-hidden border-border/40 shadow-sm glass-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-medium">Assignment Submissions</CardTitle>
-        <CardDescription className="text-[10px]">Monthly submission activity</CardDescription>
+        <CardTitle>
+          <span className="text-primary">Assignment Submissions</span>
+        </CardTitle>
+        <CardDescription>Monthly submission activity</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={submissionChartConfig} className="min-h-[200px] w-full">
-          <BarChart accessibilityLayer data={performanceTrends}>
-            <CartesianGrid vertical={false} />
-            <XAxis 
-              dataKey="month" 
-              tickLine={false} 
-              tickMargin={10} 
-              axisLine={false}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar 
-              dataKey="submissions" 
-              fill="var(--color-submissions)" 
-              name="submissions"
-              radius={4} 
-            />
-          </BarChart>
+        <ChartContainer config={submissionChartConfig} className="h-[200px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={formattedData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+              <XAxis 
+                dataKey="month" 
+                tickLine={false} 
+                tickMargin={8}
+                tick={{ fontSize: 10 }}
+                axisLine={{ stroke: 'var(--border)' }}
+              />
+              <ChartTooltip 
+                content={<ChartTooltipContent />} 
+                cursor={{ fill: 'hsl(var(--primary)/10)' }}
+              />
+              <Bar 
+                dataKey="submissions" 
+                name="submissions"
+                fill="hsl(var(--primary))" 
+                radius={[4, 4, 0, 0]} 
+                isAnimationActive={true}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
     </Card>

@@ -1,5 +1,5 @@
 import { db } from './db';
-import { users, courses, userCourses, assignments, assignmentSubmissions, forms, formSubmissions, resources, embeddings } from '../lib/db/drizzle/schema';
+import { users, courses, userCourses, assignments, assignmentSubmissions, forms as formTable, formSubmissions as formSubmissionTable, resources, embeddings } from '../lib/db/drizzle/schema';
 import bcrypt from 'bcrypt';
 import { generateEmbeddings } from './ai/embedding';
 
@@ -34,8 +34,8 @@ export async function seed() {
   try {
     await db.delete(embeddings);
     await db.delete(resources);
-    await db.delete(formSubmissions);
-    await db.delete(forms);
+    await db.delete(formSubmissionTable);
+    await db.delete(formTable);
     await db.delete(assignmentSubmissions);
     await db.delete(assignments);
     await db.delete(userCourses);
@@ -56,99 +56,334 @@ export async function seed() {
     role: 'admin',
   }).returning();
   
-  const [lecturer] = await db.insert(users).values({
-    name: 'John Lecturer',
-    email: 'lecturer@example.com',
+  // Create lecturers
+  const [lecturer1] = await db.insert(users).values({
+    name: 'John Smith',
+    email: 'lecturer1@example.com',
     passwordHash,
     role: 'lecturer',
   }).returning();
   
-  const [student] = await db.insert(users).values({
-    name: 'Jane Student',
-    email: 'student@example.com',
+  const [lecturer2] = await db.insert(users).values({
+    name: 'Emily Johnson',
+    email: 'lecturer2@example.com',
     passwordHash,
-    role: 'student',
+    role: 'lecturer',
   }).returning();
+  
+  const [lecturer3] = await db.insert(users).values({
+    name: 'Michael Brown',
+    email: 'lecturer3@example.com',
+    passwordHash,
+    role: 'lecturer',
+  }).returning();
+  
+  // Create students
+  const students = [];
+  const studentNames = [
+    'Alice Walker', 'Bob Chen', 'Charlie Davis', 'Diana Kim', 
+    'Elijah Martinez', 'Fatima Ali', 'George Wilson', 'Hannah Singh', 
+    'Isaac Taylor', 'Julia Garcia', 'Kevin Lee', 'Layla Patel', 
+    'Mason Jackson', 'Nora Robinson', 'Oliver Wong', 'Priya Sharma', 
+    'Quinn Thomas', 'Rachel Nguyen', 'Samuel Lopez', 'Tara Williams'
+  ];
+  
+  for (let i = 0; i < studentNames.length; i++) {
+    const [student] = await db.insert(users).values({
+      name: studentNames[i],
+      email: `student${i+1}@example.com`,
+      passwordHash,
+      role: 'student',
+    }).returning();
+    
+    students.push(student);
+  }
   
   console.log('✅ Users created');
   
   // Create courses
   const [course1] = await db.insert(courses).values({
     name: 'Introduction to Computer Science',
-    lecturerId: lecturer.id
+    lecturerId: lecturer1.id
   }).returning();
   
   const [course2] = await db.insert(courses).values({
     name: 'Web Development Fundamentals',
-    lecturerId: lecturer.id
+    lecturerId: lecturer1.id
+  }).returning();
+  
+  const [course3] = await db.insert(courses).values({
+    name: 'Data Structures and Algorithms',
+    lecturerId: lecturer2.id
+  }).returning();
+  
+  const [course4] = await db.insert(courses).values({
+    name: 'Database Systems',
+    lecturerId: lecturer2.id
+  }).returning();
+  
+  const [course5] = await db.insert(courses).values({
+    name: 'Artificial Intelligence',
+    lecturerId: lecturer3.id
+  }).returning();
+  
+  const [course6] = await db.insert(courses).values({
+    name: 'Mobile App Development',
+    lecturerId: lecturer3.id
   }).returning();
   
   console.log('✅ Courses created');
   
   // Create user-course relationships
-  await db.insert(userCourses).values([
-    {
-      userId: lecturer.id,
-      courseId: course1.id,
-    },
-    {
-      userId: lecturer.id,
-      courseId: course2.id,
-    },
-    {
-      userId: student.id,
-      courseId: course1.id,
-    },
-  ]);
+  const allCourses = [course1, course2, course3, course4, course5, course6];
+  const enrollments = [];
+  
+  // Enroll lecturers in their own courses
+  enrollments.push({ userId: lecturer1.id, courseId: course1.id });
+  enrollments.push({ userId: lecturer1.id, courseId: course2.id });
+  enrollments.push({ userId: lecturer2.id, courseId: course3.id });
+  enrollments.push({ userId: lecturer2.id, courseId: course4.id });
+  enrollments.push({ userId: lecturer3.id, courseId: course5.id });
+  enrollments.push({ userId: lecturer3.id, courseId: course6.id });
+  
+  // Randomly enroll students in courses
+  for (const student of students) {
+    // Each student enrolls in 2-4 random courses
+    const numCourses = 2 + Math.floor(Math.random() * 3);
+    const shuffledCourses = [...allCourses].sort(() => 0.5 - Math.random());
+    
+    for (let i = 0; i < numCourses && i < shuffledCourses.length; i++) {
+      enrollments.push({
+        userId: student.id,
+        courseId: shuffledCourses[i].id
+      });
+    }
+  }
+  
+  // Insert all enrollments
+  await db.insert(userCourses).values(enrollments);
   
   console.log('✅ Course enrollments created');
   
-  // Create assignments
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  // Create assignments for each course
+  const courseAssignments = [];
   
-  const nextWeek = new Date();
-  nextWeek.setDate(nextWeek.getDate() + 7);
+  // Helper function to create dates in the past or future
+  const createDate = (daysOffset: number): Date => {
+    const date = new Date();
+    date.setDate(date.getDate() + daysOffset);
+    return date;
+  };
   
-  const [assignment1] = await db.insert(assignments).values({
-    name: 'Week 1 Assignment',
-    courseId: course1.id,
-    deadline: tomorrow,
-  }).returning();
+  // Create assignments for each course with deadlines spanning past 6 months to future
+  for (const course of allCourses) {
+    // Past assignments
+    for (let i = 1; i <= 5; i++) {
+      courseAssignments.push({
+        name: `${course.name} - Week ${i} Assignment`,
+        courseId: course.id,
+        deadline: createDate(-180 + i * 14), // Spaced roughly every 2 weeks
+      });
+    }
+    
+    // Current assignments
+    courseAssignments.push({
+      name: `${course.name} - Midterm Project`,
+      courseId: course.id,
+      deadline: createDate(7), // Due next week
+    });
+    
+    // Future assignments
+    for (let i = 1; i <= 3; i++) {
+      courseAssignments.push({
+        name: `${course.name} - Advanced Topic ${i}`,
+        courseId: course.id,
+        deadline: createDate(14 + i * 14), // Future assignments
+      });
+    }
+    
+    // Final project
+    courseAssignments.push({
+      name: `${course.name} - Final Project`,
+      courseId: course.id,
+      deadline: createDate(90), // Due in 3 months
+    });
+  }
   
-  await db.insert(assignments).values({
-    name: 'Final Project',
-    courseId: course1.id,
-    deadline: nextWeek,
-  }).returning();
+  // Insert all assignments
+  const createdAssignments = [];
+  for (const assignment of courseAssignments) {
+    const [newAssignment] = await db.insert(assignments).values(assignment).returning();
+    createdAssignments.push(newAssignment);
+  }
   
   console.log('✅ Assignments created');
   
-  // Create assignment submissions
-  await db.insert(assignmentSubmissions).values({
-    assignmentId: assignment1.id,
-    studentId: student.id,
-    content: 'This is my submission for the Week 1 Assignment.',
-    submission: new Date(),
-    rating: 85,
+  // Create assignment submissions with varied grades
+  const submissions = [];
+  
+  // Helper function to generate a realistic grade with some variability
+  const generateGrade = (baseScore: number, studentQuality: number): number => {
+    // Base score for the assignment (difficulty factor)
+    // Student quality (0-1 scale)
+    // Add some randomness
+    const randomFactor = Math.random() * 20 - 10; // -10 to +10
+    let grade = baseScore + (studentQuality * 20) + randomFactor;
+    
+    // Ensure grade is within bounds
+    grade = Math.min(100, Math.max(40, grade));
+    return Math.round(grade);
+  };
+  
+  // Assign a "quality" score to each student for consistency in their grades
+  const studentQualities: Record<string, number> = {};
+  students.forEach(student => {
+    studentQualities[student.id] = Math.random(); // 0-1 scale
   });
+  
+  // For each enrollment, get the student's enrolled courses
+  for (const enrollment of enrollments) {
+    if (enrollment.userId === lecturer1.id || enrollment.userId === lecturer2.id || enrollment.userId === lecturer3.id) {
+      continue; // Skip lecturers
+    }
+    
+    // Get assignments for this course
+    const courseAssignments = createdAssignments.filter(a => a.courseId === enrollment.courseId);
+    
+    // Student submits most past assignments
+    for (const assignment of courseAssignments) {
+      // Only submit assignments that are due in the past
+      if (assignment.deadline < new Date()) {
+        // 85% chance of submission for past assignments
+        if (Math.random() < 0.85) {
+          const daysPastDeadline = (new Date().getTime() - assignment.deadline.getTime()) / (1000 * 3600 * 24);
+          
+          // Submissions closer to deadline for more recent assignments
+          const submissionDate = new Date(assignment.deadline);
+          submissionDate.setDate(
+            submissionDate.getDate() - Math.floor(Math.random() * Math.min(5, daysPastDeadline))
+          );
+          
+          const studentQuality = studentQualities[enrollment.userId];
+          const baseScore = 65 + (Math.random() * 10); // Base score varies by assignment difficulty
+          
+          // Generate grade (some might be null to simulate ungraded assignments)
+          const isGraded = Math.random() < 0.9; // 90% of submissions are graded
+          const rating = isGraded ? generateGrade(baseScore, studentQuality) : null;
+          
+          submissions.push({
+            assignmentId: assignment.id,
+            studentId: enrollment.userId,
+            content: `This is my submission for ${assignment.name}. I've completed all the required tasks and followed the guidelines.`,
+            submission: submissionDate,
+            rating
+          });
+        }
+      } else if (Math.random() < 0.2) {
+        // 20% chance to submit early for future assignments
+        const submissionDate = new Date();
+        
+        // Always null rating for future assignments (not graded yet)
+        submissions.push({
+          assignmentId: assignment.id,
+          studentId: enrollment.userId,
+          content: `Early submission for ${assignment.name}. I've worked ahead and completed all requirements.`,
+          submission: submissionDate,
+          rating: null
+        });
+      }
+    }
+  }
+  
+  // Insert all submissions
+  for (const submission of submissions) {
+    await db.insert(assignmentSubmissions).values(submission);
+  }
   
   console.log('✅ Assignment submissions created');
   
-  // Create forms
-  const [form1] = await db.insert(forms).values({
-    name: 'Course Feedback',
-    end: nextWeek,
-  }).returning();
+  // Create forms for course feedback
+  const formsData = [];
+  
+  // Create end-of-month feedback forms for the past 3 months
+  for (let i = 1; i <= 3; i++) {
+    const formDate = new Date();
+    formDate.setMonth(formDate.getMonth() - i);
+    formDate.setDate(28); // End of month approx
+    
+    formsData.push({
+      name: `Course Feedback - ${formDate.toLocaleString('default', { month: 'long' })}`,
+      end: formDate
+    });
+  }
+  
+  // Create a current feedback form
+  const currentFormDate = new Date();
+  currentFormDate.setDate(currentFormDate.getDate() + 14); // Due in 2 weeks
+  
+  formsData.push({
+    name: 'Current Course Feedback',
+    end: currentFormDate
+  });
+  
+  // Insert forms
+  const createdForms = [];
+  for (const formData of formsData) {
+    const [newForm] = await db.insert(formTable).values(formData).returning();
+    createdForms.push(newForm);
+  }
   
   console.log('✅ Forms created');
   
-  // Create form submissions
-  await db.insert(formSubmissions).values({
-    formId: form1.id,
-    userId: student.id,
-    content: 'The course has been very informative so far.',
-  });
+  // Create form submissions with varied feedback
+  const formSubmissionsData = [];
+  
+  // Example feedback texts
+  const feedbackOptions = [
+    "The course has been very informative. I appreciate the hands-on projects.",
+    "The lectures are engaging but I would like more practical examples.",
+    "This course material is challenging but rewarding. I'm learning a lot.",
+    "The instructor explains concepts clearly. Very satisfied with the teaching.",
+    "I think the assignments could be more challenging. Otherwise good course.",
+    "The pace of the course is good. I can follow along without feeling rushed.",
+    "I struggled with some concepts but the additional resources helped.",
+    "Very well structured course. The progression of topics makes sense.",
+    "The feedback on assignments has been very helpful for improvement.",
+    "I appreciate the real-world applications shown in this course."
+  ];
+  
+  // For past forms, add submissions from various students
+  for (let i = 0; i < createdForms.length - 1; i++) {
+    const form = createdForms[i];
+    
+    // Randomly select 10-15 students to submit feedback
+    const submittingStudents = [...students].sort(() => 0.5 - Math.random()).slice(0, 10 + Math.floor(Math.random() * 6));
+    
+    for (const student of submittingStudents) {
+      formSubmissionsData.push({
+        formId: form.id,
+        userId: student.id,
+        content: feedbackOptions[Math.floor(Math.random() * feedbackOptions.length)]
+      });
+    }
+  }
+  
+  // Add a few submissions to the current form
+  const currentForm = createdForms[createdForms.length - 1];
+  const earlySubmitters = [...students].sort(() => 0.5 - Math.random()).slice(0, 5);
+  
+  for (const student of earlySubmitters) {
+    formSubmissionsData.push({
+      formId: currentForm.id,
+      userId: student.id,
+      content: feedbackOptions[Math.floor(Math.random() * feedbackOptions.length)]
+    });
+  }
+  
+  // Insert all form submissions
+  for (const submission of formSubmissionsData) {
+    await db.insert(formSubmissionTable).values(submission);
+  }
   
   console.log('✅ Form submissions created');
 
@@ -236,13 +471,11 @@ export async function seed() {
   `);
 
   // Project Functionality - Reports
-  await db.insert(resources).values({
-    content: `
-      Functionality - Reports and Data Export:
-      Users can generate detailed reports on analytics results for specific periods, including grade distribution, performance prediction, and trends.
-      The system allows exporting analysis results to CSV, Excel, and PDF formats for further processing or presentations.
-    `,
-  });
+  await createResource(`
+    Functionality - Reports and Data Export:
+    Users can generate detailed reports on analytics results for specific periods, including grade distribution, performance prediction, and trends.
+    The system allows exporting analysis results to CSV, Excel, and PDF formats for further processing or presentations.
+  `);
 
   console.log('✅ RAG resources created');
   console.log('🌱 Seeding completed');

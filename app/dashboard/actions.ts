@@ -11,9 +11,11 @@ import {
   forms,
   formSubmissions,
   resources,
-  embeddings
+  embeddings,
+  chats,
+  chatMessages
 } from "@/lib/db/drizzle/schema";
-import { eq, sql, count, avg, max, min, desc, and, inArray } from "drizzle-orm";
+import { eq, sql, count, avg, max, min, desc, and, inArray, asc } from "drizzle-orm";
 import { generateEmbeddings } from "@/lib/ai/embedding";
 
 export type StudentStats = {
@@ -1886,4 +1888,121 @@ export async function getLecturerWeeklyMetrics(userId: string) {
     currentWeekStudents: currentStudentsCount,
     previousWeekStudents: previousStudentsCount
   };
-} 
+}
+
+// Chat history actions
+export interface ChatMessage {
+  id: string;
+  chatId: string;
+  content: string;
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  createdAt: Date;
+}
+
+export interface Chat {
+  id: string;
+  title: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  messages?: ChatMessage[];
+}
+
+
+export async function saveChatMessage(userId:string, chatId: string, content: string, role: 'system' | 'user' | 'assistant' | 'tool') {
+  try {
+    const chat = await db.query.chats.findFirst({
+      where: eq(chats.id, chatId),
+    });
+    if (!chat || chat.userId !== userId) {
+      throw new Error('Chat not found');
+    }
+    const user = await getUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const [newMessage] = await db
+      .insert(chatMessages)
+      .values({
+        chatId,
+        content,
+        role,
+      })
+      .returning();
+    
+    await db
+      .update(chats)
+      .set({ updatedAt: new Date() })
+      .where(eq(chats.id, chatId));
+    
+    return newMessage;
+  } catch (error) {
+    console.error('Error saving chat message:', error);
+    throw new Error('Failed to save chat message');
+  }
+}
+
+export async function getUserChats(userId: string) {
+  try {
+    const userChats = await db.query.chats.findMany({
+      where: eq(chats.userId, userId),
+      orderBy: [desc(chats.updatedAt)],
+    });
+    
+    return userChats;
+  } catch (error) {
+    console.error('Error getting user chats:', error);
+    throw new Error('Failed to get user chats');
+  }
+}
+
+export async function deleteChat(chatId: string) {
+  try {
+    await db
+      .delete(chats)
+      .where(eq(chats.id, chatId));
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting chat:', error);
+    throw new Error('Failed to delete chat');
+  }
+}
+
+
+
+export async function createChatWithMessages(userId: string, messages: ChatMessage[]) {
+  try {
+    const [newChat] = await db
+    .insert(chats)
+    .values({
+      userId,
+      title: 'New Conversation',
+    })
+    .returning();
+  
+    await db.insert(chatMessages).values(messages.map(msg => ({
+      chatId: newChat.id,
+      content: msg.content,
+      role: msg.role,
+    }))).returning();
+  } catch (error) {
+    console.error('Error creating chat with messages:', error);
+    throw new Error('Failed to create chat with messages');
+  }
+}
+
+export async function getChatWithMessages(chatId: string){
+  try {
+    const chat = await db.query.chats.findFirst({
+      with: {
+        messages:true
+      },
+      where: eq(chats.id, chatId),
+    });
+    return chat;
+  } catch (error: unknown) {
+    console.error('Error getting chat with messages:', error);
+    throw new Error('Failed to get chat with messages');
+  }
+}

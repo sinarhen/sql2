@@ -25,6 +25,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   userCourses: many(userCourses),
   assignmentSubmissions: many(assignmentSubmissions, { relationName: 'studentSubmissions' }),
   formSubmissions: many(formSubmissions),
+  chats: many(chats),
 }));
 
 export const courses = pgTable('courses', {
@@ -132,6 +133,40 @@ export const formSubmissionsRelations = relations(formSubmissions, ({ one }) => 
   user: one(users, {
     fields: [formSubmissions.userId],
     references: [users.id],
+  }),
+}));
+
+// Chat tables
+export const chats = pgTable('chats', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const chatsRelations = relations(chats, ({ one, many }) => ({
+  user: one(users, {
+    fields: [chats.userId],
+    references: [users.id],
+  }),
+  messages: many(chatMessages),
+}));
+
+export const roleEnum2 = pgEnum('message_role', ['system', 'user', 'assistant', 'tool']);
+
+export const chatMessages = pgTable('chat_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  chatId: uuid('chat_id').notNull().references(() => chats.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  role: roleEnum2('role').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  chat: one(chats, {
+    fields: [chatMessages.chatId],
+    references: [chats.id],
   }),
 }));
 

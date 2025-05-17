@@ -7,7 +7,9 @@ import {
   getAllCoursesInfo,
   getLecturers,
   getAverageGrades,
-  getCourseGrades
+  getCourseGrades,
+  saveChatMessage,
+  createChatWithMessages,
 } from '@/app/dashboard/actions';
 import { findRelevantContent } from '@/lib/ai/embedding';
 import { openai } from '@ai-sdk/openai';
@@ -15,11 +17,10 @@ import { streamText, tool } from 'ai';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 
-// Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages, chatId } = await req.json();
   const session = await auth();
   const userId = session?.user?.id;
   
@@ -33,7 +34,6 @@ export async function POST(req: Request) {
     });
   }
 
-  // Get user info to determine role for personalized instructions
   const userInfo = await getUserInfo(userId);
   const userRole = userInfo?.role || 'student';
   
@@ -190,7 +190,15 @@ export async function POST(req: Request) {
         },
       }),
     },
-    maxSteps: 3, // Allow multiple tool calls in one conversation turn
+    onFinish: async () => {
+        if (chatId){
+          await saveChatMessage(userId,chatId, await result.text, 'assistant');
+        } else {
+          await createChatWithMessages(userId, messages);
+        }
+        console.log('Chat saved successfully');
+    },
+    maxSteps: 3,
   });
 
   return result.toDataStreamResponse();

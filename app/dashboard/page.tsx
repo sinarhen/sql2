@@ -28,3 +28,6 @@ export default async function DashboardPage() {
     return <StudentDashboard userId={userId} />;
   }
 } 
+
+
+// in @page.tsx  for both @lecturer-dashboard.tsx  and @student-dashboard.tsx pages  I need to add a small button with ai icon to each card in the top right which will trigger the @popover.tsx  to open and assistant message like in the @page.tsx will appear with the explanation. at the bottom in the popover I'd like to have a button 'continue conversation' which will redirect to the chat page.

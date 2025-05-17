@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getUserById } from './actions';
 import { auth } from '../../lib/auth';
-import { signOut } from 'next-auth/react';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -12,7 +11,6 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
   const user = await getUserById(session.user.id);
   if (!user){
-    // await signOut();
     redirect("/auth/login");
   }
 

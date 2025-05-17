@@ -8,7 +8,7 @@ import ChatUi from "./_components/chat-ui";
 export default async function RagChatbotPage({
   searchParams,
 }: {
-  searchParams: { chatId?: string };
+  searchParams: Promise<{ chatId?: string }>;
 }) {
   const session = await auth();
   const userId = session?.user?.id;
@@ -19,7 +19,7 @@ export default async function RagChatbotPage({
   
   const chats = await getUserChats(userId);
   
-  const currentChatId = (await searchParams).chatId;
+  const currentChatId = (await searchParams)?.chatId;
   const currentChat = currentChatId
     ? await getChatWithMessages(currentChatId)
     : null;

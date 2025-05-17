@@ -10,7 +10,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
 import { TipsPanel } from "./tips-panel";
-import { ChatMessage } from "@/app/dashboard/actions";
+import { ChatMessage } from "@/lib/db/drizzle/schema";
+import { useEffect, useRef } from "react";
+
 
 interface ChatUiProps {
   chatId?: string;
@@ -20,13 +22,13 @@ interface ChatUiProps {
 
 export default function ChatUi({ chatId, initialMessages }: ChatUiProps) {
   const router = useRouter();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const showTips = !chatId || initialMessages.length === 0;
   
-  // Transform DB messages format to AI SDK format
   const formattedInitialMessages = initialMessages.length > 0
     ? initialMessages.map(msg => ({
         id: msg.id,
-        role: msg.role === 'tool' ? 'assistant' : msg.role, // Convert 'tool' role to 'assistant' for AI SDK
+        role: msg.role === 'tool' ? 'assistant' : msg.role,
         content: msg.content,
       }))
     : [{ 
@@ -35,20 +37,39 @@ export default function ChatUi({ chatId, initialMessages }: ChatUiProps) {
         content: 'Hello! I\'m your AI Learning Assistant. How can I help you today? You can ask about your courses, assignments, or any learning concepts.' 
       }];
   
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, status } = useChat({
     api: "/api/chat",
     maxSteps: 3,
     initialMessages: formattedInitialMessages,
-    onFinish: () => {
-      router.refresh();
+    onFinish: (message) => {
+      // promise me it works 
+      const newChatId = (message.annotations?.[0] as { newChatId: string }).newChatId as string | undefined
+      if (newChatId) {
+        router.push(`/dashboard/chat?chatId=${newChatId}`);
+      } 
     },
+    body: {
+      chatId: chatId,
+    }
   });
+
+  const scrollToBottom = () => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   return (
     <>
-      {/* Main Chat Area */}
       <Card className="rounded-xl md:col-span-3 flex flex-col h-[70vh]">
-        <ScrollArea className="flex-grow p-4 pt-2">
+        <ScrollArea ref={scrollAreaRef} className="flex-grow p-4 pt-2">
           {messages.length <= 1 && !chatId && (
             <div className="h-full flex flex-col items-center justify-center text-center px-4 pb-10">
               <Bot size={36} className="text-muted-foreground mb-3 opacity-50" />
@@ -61,7 +82,7 @@ export default function ChatUi({ chatId, initialMessages }: ChatUiProps) {
 
           <div className="space-y-4">
             {messages.map((m) => (
-              <div key={m.id} className="flex items-start gap-3">
+              <div key={m.id} className="flex items-start motion-preset-blur-up-lg motion-duration-500 gap-3">
                 <Avatar className="h-6 w-6">
                   <AvatarFallback className="text-xs">
                     {m.role === "user" ? <User size={12} /> : <Bot size={12} />}
@@ -93,23 +114,19 @@ export default function ChatUi({ chatId, initialMessages }: ChatUiProps) {
         </ScrollArea>
 
         <CardContent className="pt-2 border-t border-border/40">
-          <form onSubmit={() => handleSubmit(undefined, {
-            body: {
-              chatId: chatId,
-            }
-          })} className="flex items-center gap-2">
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <Input
               value={input}
               onChange={handleInputChange}
               placeholder="Ask a question..."
-              disabled={isLoading}
+              disabled={status === 'streaming'}
               className="h-8 text-xs rounded-xl bg-background border border-border/40"
             />
             <Button 
               type="submit" 
               size="sm" 
               className="rounded-xl h-8 w-8 p-0" 
-              disabled={isLoading}
+              disabled={status === 'streaming'}
             >
               <SendIcon size={14} />
               <span className="sr-only">Send</span>
@@ -118,7 +135,6 @@ export default function ChatUi({ chatId, initialMessages }: ChatUiProps) {
         </CardContent>
       </Card>
 
-      {/* Tips Panel */}
       {showTips && <TipsPanel handleInputChange={handleInputChange} />}
     </>
   );

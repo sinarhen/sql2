@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { deleteChat } from "@/app/dashboard/actions";
-import { Chat } from "@/app/dashboard/actions";
+import { Chat } from "@/lib/db/drizzle/schema";
 
 interface ChatHistorySidebarProps {
   chats: Chat[];
@@ -38,7 +38,7 @@ export default function ChatHistorySidebar({ chats, activeChatId }: ChatHistoryS
             <span>Chat History</span>
           </div>
           <Link href="/dashboard/chat">
-            <Button size="sm" className="rounded-xl h-7 w-7 p-0" title="New chat">
+            <Button  size="sm" className="rounded-xl h-7 w-7 p-0" title="New chat">
               <PlusCircle size={14} />
               <span className="sr-only">New Chat</span>
             </Button>
@@ -54,11 +54,11 @@ export default function ChatHistorySidebar({ chats, activeChatId }: ChatHistoryS
           ) : (
             <div className="space-y-2">
               {chats.map((chat) => (
-                <Link
+                <div
                   key={chat.id}
-                  href={`/dashboard/chat?chatId=${chat.id}`}
+                  onClick={() => router.push(`/dashboard/chat?chatId=${chat.id}`)}
                   className={`
-                    block p-2 rounded-xl text-xs
+                    block w-full p-2 rounded-xl text-xs cursor-pointer
                     ${chat.id === activeChatId
                       ? 'bg-primary/10 border border-primary/20'
                       : 'hover:bg-muted/50 border border-transparent'
@@ -67,7 +67,8 @@ export default function ChatHistorySidebar({ chats, activeChatId }: ChatHistoryS
                 >
                   <div className="flex items-center justify-between">
                     <span className="line-clamp-1">{chat.title}</span>
-                    <Button
+                    <Button 
+                      
                       variant="ghost"
                       size="sm"
                       className="h-5 w-5 p-0 opacity-50 hover:opacity-100"
@@ -76,13 +77,14 @@ export default function ChatHistorySidebar({ chats, activeChatId }: ChatHistoryS
                     >
                       <Trash2 size={12} />
                       <span className="sr-only">Delete</span>
+                      
                     </Button>
                   </div>
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1">
                     <Clock size={10} />
                     <span>{new Date(chat.updatedAt).toLocaleDateString()}</span>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}

@@ -10,12 +10,11 @@ interface TipsPanelProps {
 
 export function TipsPanel({ handleInputChange }: TipsPanelProps) {
   const handleExampleClick = (question: string) => {
-    // Set the input value to the example question
     handleInputChange({ target: { value: question } } as React.ChangeEvent<HTMLInputElement>);
   };
   
   return (
-    <Card className="rounded-xl border-border/20 md:col-span-1 glass-card">
+    <Card className="rounded-xl border-border/20 col-span-full glass-card">
       <CardHeader>
         <CardTitle className="text-xs flex items-center gap-2">
           <Bot size={16} className="text-primary" />
@@ -26,7 +25,7 @@ export function TipsPanel({ handleInputChange }: TipsPanelProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0">
-        <div className="space-y-2 flex flex-col">
+        <div className="grid gap-2 grid-cols-2">
           <button
             className="w-full justify-start flex-wrap whitespace-break-spaces flex text-left h-auto py-2 px-3 text-xs rounded-xl"
             onClick={() => handleExampleClick("What courses am I enrolled in?")}

@@ -145,6 +145,9 @@ export const chats = pgTable('chats', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+export type Chat = typeof chats.$inferSelect;
+export type ChatInsert = typeof chats.$inferInsert;
+
 export const chatsRelations = relations(chats, ({ one, many }) => ({
   user: one(users, {
     fields: [chats.userId],
@@ -162,7 +165,8 @@ export const chatMessages = pgTable('chat_messages', {
   role: roleEnum2('role').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
-
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type ChatMessageInsert = typeof chatMessages.$inferInsert;
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   chat: one(chats, {
     fields: [chatMessages.chatId],

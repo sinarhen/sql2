@@ -23,7 +23,7 @@ export default async function RagChatbotPage({
   const currentChat = currentChatId
     ? await getChatWithMessages(currentChatId)
     : null;
-  
+
   return (
     <div className="motion-preset-blur-up-sm motion-duration-500">
       <PageHeader className="mb-4">
@@ -34,10 +34,8 @@ export default async function RagChatbotPage({
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Chat History Sidebar */}
         <ChatHistorySidebar chats={chats} activeChatId={currentChatId} />
         
-        {/* Main Chat Area */}
         <ChatUi 
           chatId={currentChatId} 
           initialMessages={currentChat?.messages || []} 

@@ -19,107 +19,11 @@ import {
 import { eq, sql, count, avg, max, min, desc, and, inArray } from "drizzle-orm";
 import { generateEmbeddings } from "@/lib/ai/embedding";
 
-export type StudentStats = {
-  totalStudents: number;
-  newStudentsLastMonth: number;
-  totalSubmissions: number;
-  submissionsLastMonth: number;
-  averageScore: number | null;
-};
-
-export type RecentActivity = {
-  id: string;
-  studentId: string;
-  assignmentId: string;
-  rating: number | null;
-  submission: number | Date;
-  studentName: string;
-  assignmentName: string;
-  courseName: string;
-};
-
 export async function getUserById(id: string) {
     if (!id || id === '') {
         return null;
     }
     return await db.select().from(users).where(eq(users.id, id)).then((res) => res[0])
-}
-
-// Analytics for overall student statistics
-export async function getStudentStats(): Promise<StudentStats> {
-  const totalStudents = await db
-    .select({ count: count() })
-    .from(users)
-    .where(eq(users.role, "student"))
-    .then((res) => res[0].count);
-
-  const newStudentsLastMonth = await db
-    .select({ count: count() })
-    .from(users)
-    .where(
-      and(
-        eq(users.role, "student"),
-        sql`${users.createdAt} > NOW() - INTERVAL '1 month'`
-      )
-    )
-    .then((res) => res[0].count);
-
-  const totalSubmissions = await db
-    .select({ count: count() })
-    .from(assignmentSubmissions)
-    .then((res) => res[0].count);
-
-  const submissionsLastMonth = await db
-    .select({ count: count() })
-    .from(assignmentSubmissions)
-    .where(sql`${assignmentSubmissions.submission} > NOW() - INTERVAL '1 month'`)
-    .then((res) => res[0].count);
-
-  const avgScore = await db
-    .select({ avg: avg(assignmentSubmissions.rating) })
-    .from(assignmentSubmissions)
-    .where(sql`${assignmentSubmissions.rating} IS NOT NULL`)
-    .then((res) => res[0].avg);
-
-  return {
-    totalStudents,
-    newStudentsLastMonth,
-    totalSubmissions,
-    submissionsLastMonth,
-    averageScore: avgScore ? Number(avgScore) : null
-  };
-}
-
-// Get recent submissions for activity feed
-export async function getRecentActivities(limit: number): Promise<RecentActivity[]> {
-  const recentSubmissions = await db
-    .select({
-      id: assignmentSubmissions.id,
-      studentId: assignmentSubmissions.studentId,
-      assignmentId: assignmentSubmissions.assignmentId,
-      rating: assignmentSubmissions.rating,
-      submission: assignmentSubmissions.submission,
-      studentName: users.name,
-      assignmentName: assignments.name,
-      courseName: courses.name
-    })
-    .from(assignmentSubmissions)
-    .innerJoin(users, eq(assignmentSubmissions.studentId, users.id))
-    .innerJoin(assignments, eq(assignmentSubmissions.assignmentId, assignments.id))
-    .innerJoin(courses, eq(assignments.courseId, courses.id))
-    .orderBy(desc(assignmentSubmissions.submission))
-    .limit(limit);
-
-  return recentSubmissions.map((submission) => ({
-    id: submission.id,
-    studentId: submission.studentId,
-    assignmentId: submission.assignmentId,
-    rating: submission.rating,
-    submission: submission.submission,
-    studentName: submission.studentName,
-    assignmentName: submission.assignmentName,
-    courseName: submission.courseName
-  }));
 }
 
 // Get grade distribution data
@@ -316,19 +220,6 @@ export async function getAllCourses(userId?: string) {
 export async function getCourseById(id: string) {
   const course = await db.query.courses.findFirst({
     where: eq(courses.id, id),
-  });
-  
-  return course;
-}
-
-export async function getCourseWithDetails(id: string) {
-  const course = await db.query.courses.findFirst({
-    where: eq(courses.id, id),
-    with: {
-      assignments: {
-        orderBy: (assignments, { desc }) => [desc(assignments.deadline)],
-      }
-    }
   });
   
   return course;
@@ -557,182 +448,6 @@ export async function submitForm(params: SubmitFormParams) {
 
   revalidatePath("/dashboard/forms");
   return { success: true };
-}
-
-export async function viewFormSubmissions(formId: string) {
-  const submissions = await db.query.formSubmissions.findMany({
-    where: eq(formSubmissions.formId, formId),
-    with: {
-      user: true,
-    },
-  });
-  
-  return submissions;
-}
-
-// Import actions
-type ImportedStudent = {
-  name: string;
-  email: string;
-  passwordHash: string;
-};
-
-type ImportedCourse = {
-  name: string;
-  lecturerId: string;
-};
-
-type ImportedAssignment = {
-  name: string;
-  courseId: string;
-  deadline: Date;
-};
-
-type ImportedSubmission = {
-  assignmentId: string;
-  studentId: string;
-  rating: number;
-  submission: Date;
-};
-
-export async function importStudents(students: ImportedStudent[]) {
-  try {
-    const inserts = [];
-    
-    for (const student of students) {
-      const insert = db.insert(users).values({
-        name: student.name,
-        email: student.email,
-        passwordHash: student.passwordHash,
-        role: "student",
-      });
-      
-      inserts.push(insert);
-    }
-    
-    await Promise.all(inserts);
-    revalidatePath("/dashboard");
-    
-    return { success: true, count: students.length };
-  } catch (error) {
-    console.error("Error importing students:", error);
-    return { success: false, error: "Failed to import students" };
-  }
-}
-
-export async function importCourses(importedCourses: ImportedCourse[]) {
-  try {
-    const inserts = [];
-    
-    for (const course of importedCourses) {
-      const insert = db.insert(courses).values({
-        name: course.name,
-        lecturerId: course.lecturerId,
-      });
-      
-      inserts.push(insert);
-    }
-    
-    await Promise.all(inserts);
-    revalidatePath("/dashboard");
-    
-    return { success: true, count: importedCourses.length };
-  } catch (error) {
-    console.error("Error importing courses:", error);
-    return { success: false, error: "Failed to import courses" };
-  }
-}
-
-export async function importAssignments(importedAssignments: ImportedAssignment[]) {
-  try {
-    const inserts = [];
-    
-    for (const assignment of importedAssignments) {
-      const insert = db.insert(assignments).values({
-        name: assignment.name,
-        courseId: assignment.courseId,
-        deadline: assignment.deadline,
-      });
-      
-      inserts.push(insert);
-    }
-    
-    await Promise.all(inserts);
-    revalidatePath("/dashboard");
-    
-    return { success: true, count: importedAssignments.length };
-  } catch (error) {
-    console.error("Error importing assignments:", error);
-    return { success: false, error: "Failed to import assignments" };
-  }
-}
-
-export async function importSubmissions(submissions: ImportedSubmission[]) {
-  try {
-    const inserts = [];
-    
-    for (const submission of submissions) {
-      const insert = db.insert(assignmentSubmissions).values({
-        assignmentId: submission.assignmentId,
-        studentId: submission.studentId,
-        rating: submission.rating,
-        submission: submission.submission,
-      });
-      
-      inserts.push(insert);
-    }
-    
-    await Promise.all(inserts);
-    revalidatePath("/dashboard");
-    
-    return { success: true, count: submissions.length };
-  } catch (error) {
-    console.error("Error importing submissions:", error);
-    return { success: false, error: "Failed to import submissions" };
-  }
-}
-
-export async function processCsvImport(fileContent: string, type: 'students' | 'courses' | 'assignments' | 'submissions') {
-  try {
-    const lines = fileContent.split('\n');
-    const headers = lines[0].split(',');
-    const data = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
-      
-      const values = lines[i].split(',');
-      const entry: Record<string, string> = {};
-      
-      for (let j = 0; j < headers.length; j++) {
-        entry[headers[j].trim()] = values[j].trim();
-      }
-      
-      data.push(entry);
-    }
-    
-    let result;
-    
-    switch (type) {
-      case 'students':
-        result = await importStudents(data as unknown as ImportedStudent[]);
-        break;
-      case 'courses':
-        result = await importCourses(data as unknown as ImportedCourse[]);
-        break;
-      case 'assignments':
-        result = await importAssignments(data as unknown as ImportedAssignment[]);
-        break;
-      case 'submissions':
-        result = await importSubmissions(data as unknown as ImportedSubmission[]);
-        break;
-    }
-    
-    return result;
-  } catch (error) {
-    console.error("Error processing CSV import:", error);
-    return { success: false, error: "Failed to process CSV data" };
-  }
 }
 
 export async function updateUserRole(userId: string, newRole: 'student' | 'lecturer' | 'admin') {
@@ -985,19 +700,6 @@ export async function getSubmissionDetails(submissionId: string) {
     completionRate: totalAssignments > 0 ? (submissionCount / totalAssignments) * 100 : 0
   };
 }
-
-// Get all submissions for an assignment
-export async function getAssignmentSubmissions(assignmentId: string) {
-  const submissions = await db.query.assignmentSubmissions.findMany({
-    where: eq(assignmentSubmissions.assignmentId, assignmentId),
-    with: {
-      student: true
-    }
-  });
-  
-  return submissions;
-}
-
 // Get student's progress in a course
 export async function getStudentCourseProgress(studentId: string, courseId: string) {
   // Get all assignments for this course
@@ -1417,24 +1119,6 @@ export async function getLecturerDashboardData(userId: string) {
     latestAssignments: latestAssignmentsData
   };
 }
-
-// Combined function for backward compatibility - determines user role and calls appropriate function
-export async function getDashboardData(userId: string) {
-  // Get user to determine role
-  const user = await db.select().from(users).where(eq(users.id, userId)).then(res => res[0]);
-  
-  if (!user) {
-    throw new Error("User not found");
-  }
-  
-  // Call appropriate dashboard data function based on role
-  if (user.role === "lecturer" || user.role === "admin") {
-    return getLecturerDashboardData(userId);
-  } else {
-    return getStudentDashboardData(userId);
-  }
-}
-
 // RAG Chatbot actions
 export interface CreateResourceParams {
   content: string;
